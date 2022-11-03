@@ -1,0 +1,677 @@
+openapi: 3.0.3
+info:
+  title: Event Tickets - OpenAPI 3.0
+  description: Website for buying and booking tickets for events.
+  version: 0.0.1
+  
+servers:
+  - url: http://localhost:8000/rosana/api
+    description: Dev server
+paths:
+  /admin:
+    get:
+      tags:
+        - admin
+      summary: Log admin into system
+      operationId: loginAdmin
+      parameters:
+        - name: username
+          in: query
+          required: false
+          description: Admin's login
+          schema:
+            type: string
+          example: adminHelloWorld
+        - name: password
+          in: query
+          required: false
+          description: Admin's password
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Loged into system successfully'
+          headers:
+            X-Rate-Limit:
+              description: calls per hour allowed by the admin
+              schema:
+                type: integer
+                format: int32
+            X-Expires-After:
+              description: date in UTC when token expires
+              schema:
+                type: string
+                format: date-time
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: 'Invalid username/password'
+        'default':
+          description: General error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /tickets:
+    get:
+      tags:
+        - ticket
+      summary: Get all tickets
+      operationId: getAllTickets
+      parameters:
+        - name: status
+          in: query
+          required: false
+          description: 'Status values that need to be considered for filter'
+          schema:
+            type: string
+            default: available
+            enum:
+              - available
+              - sold out
+        - name: category
+          in: query
+          required: false
+          description: 'Category values that need to be considered for filter'
+          schema:
+            type: array
+            items:
+              type: string
+            default: 'concert'
+        - name: max_price
+          in: query
+          required: false
+          description: 'Max price value that need to be considered for filter'
+          schema:
+            type: integer
+            default: 2000
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tickets'
+        'default':
+          description: General error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - ticket
+      summary: Add new ticket
+      operationId: addTicket
+      requestBody:
+        description: 'Added ticket'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Ticket'
+      responses:
+        '200':
+          description: 'Added ticket successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '409':
+          description: 'Ticket already exists. Please, change tickerId'
+        default:
+          description: General error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /tickets/{ticketId}:
+    put:
+      tags:
+        - ticket
+      summary: Update ticket info
+      operationId: updateTicket
+      parameters:
+        - name: ticketId
+          in: path
+          required: true
+          description: 'The id that needs to be updated'
+          schema:
+            type: integer
+          example: 15
+      requestBody:
+        description: 'Update an existent ticket info in the store'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Ticket'
+      responses:
+        '200':
+          description: 'Updated ticket info successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '400':
+          description: 'Invalid ticket id supplied'
+        '404':
+          description: 'Ticket not found'
+        default:
+          description: General error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - ticket
+      summary: Delete ticket
+      operationId: deleteTicket
+      parameters:
+        - name: ticketId
+          in: path
+          required: true
+          description: 'The id that needs to be deleted'
+          schema:
+            type: integer
+          example: 18
+      responses:
+        '200':
+          description: 'Deleted ticket successfully'
+          content:
+            application/json: {}
+        '400':
+          description: 'Invalid ticket supplied'
+        default:
+          description: General error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      tags:
+        - ticket
+      summary: Find ticket by id
+      operationId: findTicket
+      parameters:
+        - name: ticketId
+          in: path
+          required: true
+          description: 'The id that needs to be fetched'
+          schema:
+            type: integer
+          example: 10
+      responses:
+        '200':
+          description: 'Found ticket successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '400':
+          description: 'Invalid ticket id supplied'
+        '404':
+          description: 'Ticket not found'
+        default:
+          description: General error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /tickets/findByStatus:
+    get:
+      tags:
+        - ticket
+      summary: Find tickets by status
+      operationId: findTicketByStatus
+      parameters:
+        - name: status
+          in: query
+          required: false
+          description: 'Status values that need to be considered for filter'
+          schema:
+            type: string
+            default: available
+            enum:
+              - available
+              - sold out
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticket'
+        '400':
+          description: 'Invalid status value'
+        '404':
+          description: 'Ticket not found'
+  /tickets/findByDate:
+    get:
+      tags:
+        - ticket
+      summary: Find tickets by date
+      operationId: findTicketByDate
+      parameters:
+        - name: date
+          in: query
+          required: false
+          description: 'Date values that need to be considered for filter'
+          schema:
+            type: string
+            default: '2022-08-09'
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticket'
+        '400':
+          description: 'Invalid date value'
+        '404':
+          description: 'Ticket not found'
+          
+  /tickets/findByCategory:
+    get:
+      tags:
+        - ticket
+      summary: Find tickets by category
+      operationId: findTicketByCategory
+      parameters:
+        - name: category
+          in: query
+          required: false
+          description: 'Category value that need to be considered for filter'
+          schema:
+            type: array
+            items:
+              type: string
+            default: 'concert'
+      responses:
+        '200':
+          description: 'Successful operation'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticket'
+        '400':
+          description: 'Invalid date value'
+        '404':
+          description: 'Ticket not found'
+  
+  /tickets/buy/{ticketId}:
+    post:
+      tags:
+        - purchase
+      summary: Buy ticket
+      operationId: buyTicket
+      parameters:
+        - name: ticketId
+          in: path
+          required: true
+          description: 'Ticket id that needs to be bought'
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: 'Buy ticket'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Purchase'
+      responses:
+        '200':
+          description: 'Bought ticket successfully'
+          content:
+            application/json: {}
+        '400':
+          description: 'Invalid ticket ID'
+        '404':
+          description: 'Ticket not found'
+        '409':
+          description: 'Ticket has already been bought by another user. Please try again.'
+        default:
+          description: General error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /tickets/book/{ticketId}:
+    post:
+      tags:
+        - booking
+      summary: Booking ticket
+      operationId: bookTicket
+      parameters:
+        - name: ticketId
+          in: path
+          required: true
+          description: 'Ticket id that needs to be booked'
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: 'Book ticket'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Booking'
+      responses:
+        '200':
+          description: 'Booked ticket successfully'
+          content:
+            application/json: {}
+        '400':
+          description: 'Invalid ticket ID supplied'
+        '404':
+          description: 'Ticket not found'
+        '409':
+          description: 'Ticket has already been booked by another user. Please try again.'
+        default:
+          description: General error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - booking
+      summary: 'Cancel booking by ticket id'
+      operationId: cancelBookingById
+      parameters:
+        - name: ticketId
+          in: path
+          required: true
+          description: 'Ticket id that needs to be canceled'
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 'Canceled booking successfully'
+          content:
+            application/json: {}
+        '400':
+          description: 'Invalid ticket ID supplied'
+        '404':
+          description: 'Ticket not found'
+        default:
+          description: General error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /user:
+    post:
+      tags:
+        - user
+      summary: Create new user
+      operationId: createUser
+      requestBody:
+        description: 'Created user object'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: 'Created user successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        default:
+          description: General error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /user/login:
+    get:
+      tags:
+        - user
+      summary: Log user into system
+      operationId: loginUser
+      parameters:
+        - name: username
+          in: query
+          required: false
+          description: User's login
+          schema:
+            type: string
+          example: userHelloWorld
+        - name: password
+          in: query
+          required: false
+          description: User's password
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Loged into system successfully'
+          headers:
+            X-Rate-Limit:
+              description: calls per hour allowed by the user
+              schema:
+                type: integer
+                format: int32
+            X-Expires-After:
+              description: date in UTC when token expires
+              schema:
+                type: string
+                format: date-time
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: 'Invalid username/password'
+                
+  /user/logout:
+    get:
+      tags:
+        - user
+      summary: Log user out system
+      operationId: logoutUser
+      parameters: []
+      responses:
+        default:
+          description: 'successful operation'
+  /user/{userId}:
+    get:
+      tags:
+        - user
+      summary: Find user by id
+      operationId: findUser
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: 'The id that needs to be fetched'
+          schema:
+            type: integer
+          example: 10
+      responses:
+        '200':
+          description: 'Found user successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: 'Invalid id supplied'
+        '404':
+          description: 'User not found'
+    put:
+      tags: 
+        - user
+      summary: Update user
+      operationId: updateUser
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: 'The id that needs to be updated'
+          schema:
+            type: integer
+          example: 10
+      requestBody:
+        description: 'Update an existent user in the store'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: 'Updated user info successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: 'Invalid userId supplied'
+        '404':
+          description: 'User not found'
+    delete:
+      tags: 
+        - user
+      summary: Delete user
+      operationId: deleteUser
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: 'The id that needs to be deleted'
+          schema:
+            type: integer
+          example: 10
+      responses:
+        '200':
+          description: 'Deleted user successfully'
+          content:
+            application/json: {}
+        '400':
+          description: 'Invalid username supplied'
+        '404':
+          description: 'User not found'
+            
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        userId: 
+          type: integer
+          format: int64
+          example: 5
+        username:
+          type: string
+          example: userHelloWorld
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Smith
+        email:
+          type: string
+          example: john@email.com
+        password:
+          type: string
+          example: '12345'
+        phone:
+          type: string
+          example: '0984337438'
+        userStatus:
+          type: integer
+          description: User Status
+          format: int32
+          example: 1
+    Category:
+      type: object
+      properties:
+        categoryId: 
+          type: integer
+          format: int64
+          example: 105
+        name:
+          type: string
+          enum:
+            - festival
+            - concert
+            - sport
+            - theater
+          example: festival
+    Ticket:
+      type: object
+      properties:
+        ticketId:
+          type: integer
+          format: int64
+          example: 19
+        name:
+          type: string
+          example: Coachella Festival
+        price:
+          type: integer
+          example: 1200
+        category:
+          $ref: '#/components/schemas/Category'
+        date:
+          type: string
+          format: date-time
+        place:
+          type: string
+          example: California, USA
+        status:
+          type: string
+          example: available
+          enum:
+            - available
+            - sold out
+        # maybe add later a performer
+    Tickets:
+      type: array
+      items:
+        $ref: '#/components/schemas/Ticket'
+    Purchase:
+      type: object
+      properties:
+        userId:
+          type: integer
+          format: int64
+          example: 5
+        quantity:
+          type: integer
+          format: int64
+          example: 1
+    Booking:
+      type: object
+      properties:
+        userId:
+          type: integer
+          format: int64
+          example: 2
+        quantity:
+          type: integer
+          format: int64
+          example: 3
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 502
+        message:
+          type: string
+          example: Unhandled Error
+       
+      
