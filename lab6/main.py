@@ -2,9 +2,10 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:*sashros*@localhost:5000/ticket_shop'  # change if doesnt work
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:*sashros*@localhost:5000/ticket_shop'  # change if it doesn't work
 
 db = SQLAlchemy(app)
+
 
 class User(db.Model):
     __tablename__ = 'user'
@@ -20,6 +21,7 @@ class User(db.Model):
     def __repr__(self):
         return f"<User {self.id} name = {self.first_name} last name = {self.last_name}>"
 
+
 class Category(db.Model):
     __tablename__ = 'category'
     category_id = db.Column(db.Integer, primary_key=True)
@@ -27,6 +29,7 @@ class Category(db.Model):
 
     def __repr__(self):
         return f"<Category {self.name}>"
+
 
 class Ticket(db.Model):
     __tablename__ = 'ticket'
@@ -42,13 +45,29 @@ class Ticket(db.Model):
     def __repr__(self):
         return f"<{self.name} costs {self.price}, takes place in {self.place}. It is {self.status} on site>"
 
+
+class Purchase(db.Model):
+    __tablename__ = 'purchase'
+    purchase_id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
+    ticket_id = db.Column(db.Integer, db.ForeignKey('ticket.ticket_id'), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    total_price = db.Column(db.Integer, nullable=False)
+    status = db.Column(db.Enum('bought', 'booked', 'canceled'), nullable=False)
+
+    def __repr__(self):
+        return f"<User {self.user_id} {self.status} {self.quantity} ticket/s {self.ticket_id}. Final cost: {self.total_price}>"
+
+
 @app.route("/", methods=['GET'])
 def home():
     return "Hello Home!"
 
+
 @app.route("/localhost:5000/api/v1/hello-world-8")
 def hello():
     return "<h2 style='color:green'>Hello World! 8</h2>"
+
 
 if __name__ == "__main__":
     app.run(debug=True)
