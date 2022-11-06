@@ -7,7 +7,12 @@ name = "pypi"
 flask = "*"
 gunicorn = "*"
 requests = "*"
+alembic = "*"
 flask-sqlalchemy = "*"
+pymysql = "*"
+mysql-connector = "*"
+wheel = "*"
+mysqlclient = "*"
 
 [dev-packages]
 

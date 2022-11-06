@@ -1,8 +1,16 @@
-from flask import Flask
+from flask import Flask, current_app
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import declarative_base
+
+import pymysql
+
+pymysql.install_as_MySQLdb()
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:*sashros*@localhost:5000/ticket_shop'  # change if it doesn't work
+
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:*sashros*@localhost:3306/ticket_shop"
+# Base = declarative_base()
+# conn = pymysql.connect(db='ticket_shop', user='root', passwd='*sashros*', host='localhost')
 
 db = SQLAlchemy(app)
 
@@ -25,7 +33,7 @@ class User(db.Model):
 class Category(db.Model):
     __tablename__ = 'category'
     category_id = db.Column(db.Integer, primary_key=True)
-    name = db.String(45)
+    name = db.Column(db.String(45))
 
     def __repr__(self):
         return f"<Category {self.name}>"
@@ -59,15 +67,19 @@ class Purchase(db.Model):
         return f"<User {self.user_id} {self.status} {self.quantity} ticket/s {self.ticket_id}. Final cost: {self.total_price}>"
 
 
+with app.app_context():
+    db.create_all()
+
+
 @app.route("/", methods=['GET'])
 def home():
     return "Hello Home!"
 
 
-@app.route("/localhost:5000/api/v1/hello-world-8")
+@app.route("/api/v1/hello-world-8") # was /localhost:5000
 def hello():
     return "<h2 style='color:green'>Hello World! 8</h2>"
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # was with app.app.context()
     app.run(debug=True)
