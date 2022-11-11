@@ -9,7 +9,7 @@ pymysql.install_as_MySQLdb()
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:*sashros*@localhost:3306/ticket_shop"
-# Base = declarative_base()
+Base = declarative_base()
 # conn = pymysql.connect(db='ticket_shop', user='root', passwd='*sashros*', host='localhost')
 
 db = SQLAlchemy(app)

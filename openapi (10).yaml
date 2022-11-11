@@ -363,7 +363,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Booking'
+              $ref: '#/components/schemas/Purchase'
       responses:
         '200':
           description: 'Booked ticket successfully'
@@ -645,6 +645,10 @@ components:
     Purchase:
       type: object
       properties:
+        purchaseId:
+          type: integer
+          format: int64
+          example: 78
         userId:
           type: integer
           format: int64
@@ -653,17 +657,17 @@ components:
           type: integer
           format: int64
           example: 1
-    Booking:
-      type: object
-      properties:
-        userId:
+        total_price:
           type: integer
           format: int64
-          example: 2
-        quantity:
-          type: integer
-          format: int64
-          example: 3
+          example: 3500
+        status:
+          type: string
+          enum:
+            - bought
+            - booked
+            - canceled
+          example: bought
     Error:
       type: object
       properties:

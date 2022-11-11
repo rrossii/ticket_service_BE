@@ -1,4 +1,3 @@
-
 from models import db, app, User, Ticket, Category, Purchase
 from flask_sqlalchemy.session import Session
 
