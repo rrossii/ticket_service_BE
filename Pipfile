@@ -13,6 +13,11 @@ pymysql = "*"
 mysql-connector = "*"
 wheel = "*"
 mysqlclient = "*"
+marshmallow = "*"
+flask-restful = "*"
+werkzeug = "*"
+flask-marshmallow = "*"
+marshmallow-sqlalchemy = "*"
 
 [dev-packages]
 

@@ -6,16 +6,6 @@ pymysql.install_as_MySQLdb()
 
 session = Session(db)
 
-# pymysql.connections.DEBUG = True
-# conn = pymysql.connect(db='ticket_shop',
-#                        user='root',
-#                        passwd="*sashros*",
-#                        host='localhost',
-#                        # host='127.0.0.1',
-#                        unix_socket='/var/run/mysqld/mysqlx.sock',
-#                        port=3306)
-
-
 with app.app_context():
     admin = User(username='admin1', first_name='Rosana', last_name='Klym', email='annros2003@gmail.com',
                  password='12345', phone='0984337438', user_status='admin')
