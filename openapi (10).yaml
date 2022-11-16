@@ -3,7 +3,8 @@ info:
   title: Event Tickets - OpenAPI 3.0
   description: Website for buying and booking tickets for events.
   version: 0.0.1
-  
+
+  # RENAME TICKETS TO TICKETS WHERE IT IS ABOUT ONE TICKET
 servers:
   - url: http://localhost:8000/rosana/api
     description: Dev server

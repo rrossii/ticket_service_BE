@@ -50,36 +50,6 @@ user_schema = UserSchema()  # strict=True
 users_schema = UserSchema(many=True)  # strict=True
 
 
-@app.route('/user', methods=['POST'])
-def create_user():
-    username = request.json['username']
-    first_name = request.json['first_name']
-    last_name = request.json['last_name']
-    email = request.json['email']
-    password = request.json['password']
-    phone = request.json['phone']
-    user_status = request.json['user_status']
-
-    new_user = User(username, first_name, last_name, email, password, phone, user_status)
-
-    db.session.add(new_user)
-    db.session.commit()
-
-    return user_schema.jsonify(new_user)
-
-
-@app.route('/user', methods=['GET'])
-def get_all_users():
-    users = User.query.all()
-
-    result = []
-
-    for user in users:
-        result.append({'user_id':user.user_id, 'username':user.username, 'first_name':user.first_name, 'last_name':user.last_name, 'email':user.email,
-                       'password':user.password, 'phone':user.phone, "user_status":user.user_status})
-    return jsonify(result)
-
-
 class Category(db.Model):
     __tablename__ = 'category'
     category_id = db.Column(db.Integer, primary_key=True)
@@ -87,6 +57,18 @@ class Category(db.Model):
 
     def __repr__(self):
         return f"<Category {self.name}>"
+
+    # todo: think about __init__ later
+    def __init__(self, name):
+        self.name = name
+
+
+class CategorySchema(ma.Schema):
+    class Meta:
+        fields = ('category_id', 'name')
+
+
+category_schema = CategorySchema()
 
 
 class Ticket(db.Model):
@@ -103,6 +85,24 @@ class Ticket(db.Model):
     def __repr__(self):
         return f"<{self.name} costs {self.price}, takes place in {self.place}. It is {self.status} on site>"
 
+    def __init__(self, name, price, category_id, quantity, date, place, status):
+        self.name = name
+        self.price = price
+        self.category_id = category_id
+        self.quantity = quantity
+        self.date = date
+        self.place = place
+        self.status = status
+
+
+class TicketSchema(ma.Schema):
+    class Meta:
+        fields = ('name', 'price', 'category_id', 'quantity', 'date', 'place', 'status')
+
+
+ticket_schema = TicketSchema()
+tickets_schema = TicketSchema(many=True)
+
 
 class Purchase(db.Model):
     __tablename__ = 'purchase'
@@ -116,8 +116,22 @@ class Purchase(db.Model):
     def __repr__(self):
         return f"<User {self.user_id} {self.status} {self.quantity} ticket/s {self.ticket_id}. Final cost: {self.total_price}>"
 
+    def __init__(self, user_id, ticket_id, quantity, total_price, status):
+        self.user_id = user_id
+        self.ticket_id = ticket_id
+        self.quantity = quantity
+        self.total_price = total_price
+        self.status = status
 
-#
+
+class PurchaseSchema(ma.Schema):
+    class Meta:
+        fields = ('user_id', 'ticket_id', 'quantity', 'total_price', 'status')
+
+
+purchase_schema = PurchaseSchema()
+
+
 # with app.app_context():
 #     db.create_all()
 

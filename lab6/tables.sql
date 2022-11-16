@@ -25,7 +25,7 @@ create table ticket(
 	place varchar(45) not null,
 	status enum('available', 'sold out'),
 	primary key (ticket_id),
-	constraint fk_category_ticket foreign key (category_id) references category(category_id)
+	constraint fk_ticket_1 foreign key (category_id) references category(category_id) on delete cascade
 	);
 
 create table purchase(
@@ -36,6 +36,6 @@ create table purchase(
 	total_price int not null,
 	status enum('bought', 'booked', 'canceled'),
 	primary key (purchase_id),
-	constraint fk_purchase_ticket foreign key (ticket_id) references ticket(ticket_id),
-	constraint fk_purchase_user foreign key (user_id) references user(user_id)
+	constraint fk_purchase_ticket_1 foreign key (ticket_id) references ticket(ticket_id) on delete cascade,
+	constraint fk_purchase_user_1 foreign key (user_id) references user(user_id) on delete cascade
 	);
