@@ -1,3 +1,5 @@
+import datetime
+
 from lab6.models import *
 
 
@@ -104,7 +106,7 @@ def get_all_tickets():
     return jsonify(result)
 
 
-@app.route('/ticket', methods=['POST'])
+@app.route('/tickets', methods=['POST'])
 def create_ticket():
     name = request.json['name']
     price = request.json['price']
@@ -122,7 +124,7 @@ def create_ticket():
     return ticket_schema.jsonify(new_ticket), 200
 
 
-@app.route('/ticket/<ticket_id>', methods=['PUT'])
+@app.route('/tickets/<ticket_id>', methods=['PUT'])
 def update_ticket_info(ticket_id):
     ticket = Ticket.query.get(ticket_id)
 
@@ -150,7 +152,7 @@ def update_ticket_info(ticket_id):
     return ticket_schema.jsonify(ticket), 200
 
 
-@app.route('/ticket/<ticket_id>', methods=['DELETE'])
+@app.route('/tickets/<ticket_id>', methods=['DELETE'])
 def delete_ticket(ticket_id):
     ticket = Ticket.query.get(ticket_id)
 
@@ -161,6 +163,103 @@ def delete_ticket(ticket_id):
     db.session.commit()
 
     return "Deleted successfully", 204
+
+
+@app.route('/tickets/<ticket_id>', methods=['GET'])
+def get_ticket_by_id(ticket_id):
+    ticket = Ticket.query.get(ticket_id)
+
+    if ticket is None:
+        return jsonify({"message": "Ticket not found"}), 404
+
+    return ticket_schema.jsonify(ticket)
+
+
+@app.route('/tickets/findByStatus', methods=['GET'])
+def get_tickets_by_status():
+    status = request.json['status']
+    tickets = Ticket.query.filter_by(status=status)
+
+    if not isinstance(status, str):
+        return jsonify({"message": "Invalid status value"}), 400
+
+    result = []
+
+    for ticket in tickets:
+        result.append({'ticket_id': ticket.ticket_id, 'name': ticket.name, 'price': ticket.price,
+                       'category_id': ticket.category_id, 'quantity': ticket.quantity,
+                       'date': ticket.date, 'place': ticket.place, "status": ticket.status})
+
+    if len(result) == 0:
+        return jsonify({"message": "Tickets not found"}), 404
+
+    return jsonify(result), 200
+
+
+@app.route('/tickets/findByCategory', methods=['GET'])
+def get_tickets_by_category():
+    category_name = request.json['category']
+    category = db.session.query(Category).filter_by(name=category_name).one()
+    categ_id = category.category_id
+
+    if category is None:
+        return jsonify({"message": "Category not found"}), 404
+
+    if not isinstance(category_name, str):
+        return jsonify({"message": "Invalid category value"}), 400
+
+    tickets = Ticket.query.filter_by(category_id=categ_id)
+
+    result = []
+
+    for ticket in tickets:
+        result.append({'ticket_id': ticket.ticket_id, 'name': ticket.name, 'price': ticket.price,
+                       'category_id': ticket.category_id, 'quantity': ticket.quantity,
+                       'date': ticket.date, 'place': ticket.place, "status": ticket.status})
+
+    if len(result) == 0:
+        return jsonify({"message": "Tickets not found"}), 404
+
+    return jsonify(result), 200
+
+
+@app.route('/tickets/findByDate', methods=['GET'])
+def get_tickets_by_date():
+    date = request.json['date']
+    tickets = Ticket.query.filter_by(date=date)
+
+    result = []
+
+    for ticket in tickets:
+        result.append({'ticket_id': ticket.ticket_id, 'name': ticket.name, 'price': ticket.price,
+                       'category_id': ticket.category_id, 'quantity': ticket.quantity,
+                       'date': ticket.date, 'place': ticket.place, "status": ticket.status})
+
+    if len(result) == 0:
+        return jsonify({"message": "Tickets not found"}), 404
+
+    return jsonify(result), 200
+
+
+@app.route('/tickets/buy/<ticket_id>', methods=['POST'])
+def buy_ticket(ticket_id):
+    ticket = Ticket.query.get(ticket_id)
+
+    if ticket is None:
+        return jsonify({"message": "Ticket not found"}), 404
+    if isinstance(ticket_id, type(int)):
+        return jsonify({"message": "Invalid ticket_id value"}), 400
+    if ticket.quantity == 0:
+        return jsonify({"message": "These tickets are sold out"}), 404
+    if ticket.quantity == 1:
+        ticket.status = 'sold out'
+
+
+    ticket.quantity -= 1
+
+    db.session.commit()
+
+    return ticket_schema.jsonify(ticket), 200
 
 
 if __name__ == "__main__":  # was with app.app.context()
