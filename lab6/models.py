@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import declarative_base
 from flask_marshmallow import Marshmallow
+from marshmallow import validate, validates, fields, ValidationError
+from werkzeug.security import generate_password_hash, check_password_hash
 # import requests
 import pymysql
 
@@ -24,8 +26,8 @@ class User(db.Model):
     first_name = db.Column(db.String(45), nullable=False)
     last_name = db.Column(db.String(45), nullable=False)
     email = db.Column(db.String(45), unique=True, nullable=False)
-    password = db.Column(db.String(45), nullable=False)
-    phone = db.Column(db.String(45), nullable=False)
+    password = db.Column(db.String(255), nullable=False)
+    phone = db.Column(db.String(10), nullable=False)
     user_status = db.Column(db.Enum('admin', 'user'), nullable=False)
 
     def __repr__(self):

@@ -1,5 +1,3 @@
-import datetime
-
 from lab6.models import *
 
 
@@ -13,7 +11,9 @@ def create_user():
     phone = request.json['phone']
     user_status = request.json['user_status']
 
-    new_user = User(username, first_name, last_name, email, password, phone, user_status)
+    password_hashed = generate_password_hash(password)
+
+    new_user = User(username, first_name, last_name, email, password_hashed, phone, user_status)
 
     db.session.add(new_user)
     db.session.commit()
@@ -85,12 +85,13 @@ def delete_user(user_id):
 @app.route('/user/login', methods=['POST'])
 def login():
     # TODO: in 8 lab
-    pass
+    return 200
 
 
 @app.route('/user/logout', methods=['DELETE'])
 def logout():
-    pass
+    # TODO: in 8 lab
+    return 200
 
 
 @app.route('/tickets', methods=['GET'])
@@ -244,22 +245,122 @@ def get_tickets_by_date():
 @app.route('/tickets/buy/<ticket_id>', methods=['POST'])
 def buy_ticket(ticket_id):
     ticket = Ticket.query.get(ticket_id)
+    ticket_price = db.session.query(Ticket).filter_by(ticket_id=ticket_id).one().price
 
+    quantity = request.json['quantity']
+    user_id = request.json['user_id']
+
+    user = User.query.get(user_id)
+
+    if user is None:
+        return jsonify({"message": "User not found"}), 404
     if ticket is None:
         return jsonify({"message": "Ticket not found"}), 404
     if isinstance(ticket_id, type(int)):
         return jsonify({"message": "Invalid ticket_id value"}), 400
+    if isinstance(quantity, type(int)) or isinstance(user_id, type(int)):
+        return jsonify({"message": "This value must be integer"}), 400
     if ticket.quantity == 0:
+        ticket.status = 'sold out'
         return jsonify({"message": "These tickets are sold out"}), 404
+    if ticket.quantity < quantity:
+        return jsonify({"message": f"There are only {quantity} tickets"}), 404
     if ticket.quantity == 1:
         ticket.status = 'sold out'
 
+    ticket.quantity -= int(quantity)
 
-    ticket.quantity -= 1
+    purchase_user_id = user_id
+    purchase_ticket_id = ticket_id
+    purchase_quantity = quantity
+    purchase_total_price = ticket_price * quantity
+    purchase_status = 'bought'
 
+    purchase = Purchase(purchase_user_id, purchase_ticket_id, purchase_quantity, purchase_total_price, purchase_status)
+
+    db.session.add(purchase)
     db.session.commit()
 
-    return ticket_schema.jsonify(ticket), 200
+    return purchase_schema.jsonify(purchase), 200
+
+
+@app.route('/tickets/book/<ticket_id>', methods=['POST'])
+def book_ticket(ticket_id):
+    ticket = Ticket.query.get(ticket_id)
+    ticket_price = db.session.query(Ticket).filter_by(ticket_id=ticket_id).one().price
+
+    quantity = request.json['quantity']
+    user_id = request.json['user_id']
+
+    user = User.query.get(user_id)
+
+    if user is None:
+        return jsonify({"message": "User not found"}), 404
+    if ticket is None:
+        return jsonify({"message": "Ticket not found"}), 404
+    if isinstance(ticket_id, type(int)):
+        return jsonify({"message": "Invalid ticket_id value"}), 400
+    if isinstance(quantity, type(int)):
+        return jsonify({"message": "Quantity value must be integer"}), 400
+    if ticket.quantity == 0:
+        ticket.status = 'sold out'
+        return jsonify({"message": "These tickets are sold out"}), 404
+    if ticket.quantity < quantity:
+        return jsonify({"message": f"There are only {quantity} tickets"}), 404
+    if ticket.quantity == 1:
+        ticket.status = 'sold out'
+
+    ticket.quantity -= int(quantity)
+
+    purchase_user_id = user_id
+    purchase_ticket_id = ticket_id
+    purchase_quantity = quantity
+    purchase_total_price = ticket_price * quantity
+    purchase_status = 'booked'
+
+    purchase = Purchase(purchase_user_id, purchase_ticket_id, purchase_quantity, purchase_total_price, purchase_status)
+
+    db.session.add(purchase)
+    db.session.commit()
+
+    return purchase_schema.jsonify(purchase), 200
+
+
+@app.route('/tickets/book/<purchase_id>', methods=['DELETE'])
+def cancel_booking(purchase_id):
+    booking = Purchase.query.get(purchase_id)
+
+    if booking is None:
+        return jsonify({"message": "Booking not found"}), 404
+
+    booking_status = db.session.query(Purchase).filter_by(purchase_id=purchase_id).one().status
+    if booking_status == 'bought':
+        return jsonify({"message": "This ticket is already bought, cannot cancel this purchase"}), 404
+
+    ticket_id = db.session.query(Purchase).filter_by(purchase_id=purchase_id).one().ticket_id
+    ticket = db.session.query(Ticket).filter_by(ticket_id=ticket_id).one()
+    booking_quantity = db.session.query(Purchase).filter_by(purchase_id=purchase_id).one().quantity
+    ticket.quantity += booking_quantity
+
+    db.session.delete(booking)
+    db.session.commit()
+
+    return "Canceled successfully", 204
+
+
+@app.route('/tickets/buy', methods=['GET'])
+def get_all_purchases():
+    purchases = Purchase.query.all()
+
+    result = []
+
+    if purchases is None:
+        return jsonify({"message": "Empty"}), 200
+
+    for purchase in purchases:
+        result.append({'ticket_id': purchase.ticket_id, 'user_id': purchase.user_id, 'quantity': purchase.quantity,
+                       'total_price': purchase.total_price, 'status': purchase.status})
+    return jsonify(result)
 
 
 if __name__ == "__main__":  # was with app.app.context()
