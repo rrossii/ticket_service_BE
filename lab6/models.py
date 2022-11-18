@@ -2,8 +2,7 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import declarative_base
 from flask_marshmallow import Marshmallow
-from marshmallow import validate, validates, fields, ValidationError
-from werkzeug.security import generate_password_hash, check_password_hash
+from marshmallow import validates, ValidationError
 # import requests
 import pymysql
 
@@ -46,6 +45,36 @@ class User(db.Model):
 class UserSchema(ma.Schema):
     class Meta:
         fields = ('user_id', 'username', 'first_name', 'last_name', 'email', 'password', 'phone', 'user_status')
+
+        @validates("phone")
+        def validate_phone(self):
+            if len(self) != 10:
+                raise ValidationError("Phone size must be 10")
+            if not self.isnumeric():
+                raise ValidationError("Phone number cannot contain letters")
+
+        @validates("email")
+        def validate_email(self):
+            if '@' not in self and '.' not in self:
+                raise ValidationError("Email must contain @ and dot")
+            if '@' not in self:
+                raise ValidationError("Email must contain @")
+            if '.' not in self:
+                raise ValidationError("Email must contain dot")
+
+        @validates("user_status")
+        def validate_user_status(self):
+            if self not in ('user', 'admin'):
+                raise ValidationError("Status must be 'user' either 'admin'")
+
+        @validates("name")
+        def validate_name(self, first_name, last_name):
+            if not last_name.isalpha() and not first_name.isalpha():
+                raise ValidationError("First and last name cannot contain numbers")
+            if not first_name.isalpha():
+                raise ValidationError("First name cannot contain numbers")
+            if not last_name.isalpha():
+                raise ValidationError("Last name cannot contain numbers")
 
 
 user_schema = UserSchema()  # strict=True
@@ -101,6 +130,30 @@ class TicketSchema(ma.Schema):
     class Meta:
         fields = ('name', 'price', 'category_id', 'quantity', 'date', 'place', 'status')
 
+        @validates("price")
+        def validate_price(self):
+            if not isinstance(self, int):
+                raise ValidationError("Price must be integer")
+
+        @validates("category_id")
+        def validate_category_id(self):
+            if not isinstance(self, int):
+                raise ValidationError("Category ID must be integer")
+
+        @validates("quantity")
+        def validate_quantity(self):
+            if not isinstance(self, int):
+                raise ValidationError("Quantity must be integer")
+
+        @validates("status")
+        def validate_status(self, *args):
+            if self not in ('available', 'sold out'):
+                raise ValidationError("Ticket status must be 'available' either 'sold out'")
+            if self == 'sold out' and args[0] > 0:
+                raise ValidationError(f"Change input data, ticket cannot have status 'sold out' with quantity {args[0]}")
+            if self == 'available' and args[0] <= 0:
+                raise ValidationError(f"Change input data, ticket cannot have status 'available' with quantity {args[0]}")
+
 
 ticket_schema = TicketSchema()
 tickets_schema = TicketSchema(many=True)
@@ -129,6 +182,31 @@ class Purchase(db.Model):
 class PurchaseSchema(ma.Schema):
     class Meta:
         fields = ('user_id', 'ticket_id', 'quantity', 'total_price', 'status')
+
+        @validates("ticket_id")
+        def validate_ticket_id(self):
+            if not isinstance(self, int):
+                raise ValidationError("Ticket ID must be integer")
+
+        @validates("user_id")
+        def validate_user_id(self):
+            if not isinstance(self, int):
+                raise ValidationError("User ID must be integer")
+
+        @validates("quantity")
+        def validate_quantity(self):
+            if not isinstance(self, int):
+                raise ValidationError("Quantity must be integer")
+
+        @validates("total_price")
+        def validate_total_price(self):
+            if not isinstance(self, int):
+                raise ValidationError("Total price must be integer")
+
+        @validates("status")
+        def validate_status(self):
+            if self not in ('bought', 'booked'):
+                raise ValidationError("Purchase status must be 'booked' either 'bought'")
 
 
 purchase_schema = PurchaseSchema()

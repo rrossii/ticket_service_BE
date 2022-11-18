@@ -1,4 +1,27 @@
 from lab6.models import *
+from werkzeug.security import generate_password_hash
+
+
+def user_validation(phone, email, user_status, first_name, last_name):
+    UserSchema.Meta.validate_phone(phone)
+    UserSchema.Meta.validate_email(email)
+    UserSchema.Meta.validate_user_status(user_status)
+    UserSchema.Meta.validate_name(None, first_name, last_name)
+
+
+def ticket_validation(price, category_id, quantity, status):
+    TicketSchema.Meta.validate_price(price)
+    TicketSchema.Meta.validate_category_id(category_id)
+    TicketSchema.Meta.validate_quantity(quantity)
+    TicketSchema.Meta.validate_status(status, quantity)
+
+
+def purchase_validation(user_id, ticket_id, quantity, total_price, status):
+    PurchaseSchema.Meta.validate_user_id(user_id)
+    PurchaseSchema.Meta.validate_ticket_id(ticket_id)
+    PurchaseSchema.Meta.validate_quantity(quantity)
+    PurchaseSchema.Meta.validate_total_price(total_price)
+    PurchaseSchema.Meta.validate_status(status)
 
 
 @app.route('/user', methods=['POST'])
@@ -14,6 +37,8 @@ def create_user():
     password_hashed = generate_password_hash(password)
 
     new_user = User(username, first_name, last_name, email, password_hashed, phone, user_status)
+
+    user_validation(phone, email, user_status, first_name, last_name)
 
     db.session.add(new_user)
     db.session.commit()
@@ -53,9 +78,11 @@ def update_user_info(user_id):
     user.first_name = first_name
     user.last_name = last_name
     user.email = email
-    user.password = password
+    user.password = generate_password_hash(password)
     user.phone = phone
     user.user_status = user_status
+
+    user_validation(phone, email, user_status, first_name, last_name)
 
     db.session.commit()
 
@@ -77,8 +104,10 @@ def delete_user(user_id):
     user = User.query.get(user_id)
     if user is None:
         return "User not found", 404
+
     db.session.delete(user)
     db.session.commit()
+
     return "Deleted successfully", 204
 
 
@@ -104,6 +133,7 @@ def get_all_tickets():
         result.append({'ticket_id': ticket.ticket_id, 'name': ticket.name, 'price': ticket.price,
                        'category_id': ticket.category_id, 'quantity': ticket.quantity,
                        'date': ticket.date, 'place': ticket.place, "status": ticket.status})
+
     return jsonify(result)
 
 
@@ -118,6 +148,8 @@ def create_ticket():
     status = request.json['status']
 
     new_ticket = Ticket(name, price, category_id, quantity, date, place, status)
+
+    ticket_validation(price, category_id, quantity, status)
 
     db.session.add(new_ticket)
     db.session.commit()
@@ -147,6 +179,8 @@ def update_ticket_info(ticket_id):
     ticket.date = date
     ticket.place = place
     ticket.status = status
+
+    ticket_validation(price, category_id, quantity, status)
 
     db.session.commit()
 
@@ -245,6 +279,10 @@ def get_tickets_by_date():
 @app.route('/tickets/buy/<ticket_id>', methods=['POST'])
 def buy_ticket(ticket_id):
     ticket = Ticket.query.get(ticket_id)
+
+    if ticket is None:
+        return jsonify({"message": "Ticket not found"}), 404
+
     ticket_price = db.session.query(Ticket).filter_by(ticket_id=ticket_id).one().price
 
     quantity = request.json['quantity']
@@ -254,12 +292,6 @@ def buy_ticket(ticket_id):
 
     if user is None:
         return jsonify({"message": "User not found"}), 404
-    if ticket is None:
-        return jsonify({"message": "Ticket not found"}), 404
-    if isinstance(ticket_id, type(int)):
-        return jsonify({"message": "Invalid ticket_id value"}), 400
-    if isinstance(quantity, type(int)) or isinstance(user_id, type(int)):
-        return jsonify({"message": "This value must be integer"}), 400
     if ticket.quantity == 0:
         ticket.status = 'sold out'
         return jsonify({"message": "These tickets are sold out"}), 404
@@ -271,12 +303,14 @@ def buy_ticket(ticket_id):
     ticket.quantity -= int(quantity)
 
     purchase_user_id = user_id
-    purchase_ticket_id = ticket_id
+    purchase_ticket_id = int(ticket_id)
     purchase_quantity = quantity
     purchase_total_price = ticket_price * quantity
     purchase_status = 'bought'
 
     purchase = Purchase(purchase_user_id, purchase_ticket_id, purchase_quantity, purchase_total_price, purchase_status)
+
+    purchase_validation(purchase_user_id, purchase_ticket_id, purchase_quantity, purchase_total_price, purchase_status)
 
     db.session.add(purchase)
     db.session.commit()
@@ -287,6 +321,10 @@ def buy_ticket(ticket_id):
 @app.route('/tickets/book/<ticket_id>', methods=['POST'])
 def book_ticket(ticket_id):
     ticket = Ticket.query.get(ticket_id)
+
+    if ticket is None:
+        return jsonify({"message": "Ticket not found"}), 404
+
     ticket_price = db.session.query(Ticket).filter_by(ticket_id=ticket_id).one().price
 
     quantity = request.json['quantity']
@@ -296,8 +334,6 @@ def book_ticket(ticket_id):
 
     if user is None:
         return jsonify({"message": "User not found"}), 404
-    if ticket is None:
-        return jsonify({"message": "Ticket not found"}), 404
     if isinstance(ticket_id, type(int)):
         return jsonify({"message": "Invalid ticket_id value"}), 400
     if isinstance(quantity, type(int)):
@@ -313,12 +349,14 @@ def book_ticket(ticket_id):
     ticket.quantity -= int(quantity)
 
     purchase_user_id = user_id
-    purchase_ticket_id = ticket_id
+    purchase_ticket_id = int(ticket_id)
     purchase_quantity = quantity
     purchase_total_price = ticket_price * quantity
     purchase_status = 'booked'
 
     purchase = Purchase(purchase_user_id, purchase_ticket_id, purchase_quantity, purchase_total_price, purchase_status)
+
+    purchase_validation(purchase_user_id, purchase_ticket_id, purchase_quantity, purchase_total_price, purchase_status)
 
     db.session.add(purchase)
     db.session.commit()
@@ -358,8 +396,9 @@ def get_all_purchases():
         return jsonify({"message": "Empty"}), 200
 
     for purchase in purchases:
-        result.append({'ticket_id': purchase.ticket_id, 'user_id': purchase.user_id, 'quantity': purchase.quantity,
+        result.append({'id': purchase.purchase_id, 'ticket_id': purchase.ticket_id, 'user_id': purchase.user_id, 'quantity': purchase.quantity,
                        'total_price': purchase.total_price, 'status': purchase.status})
+
     return jsonify(result)
 
 
