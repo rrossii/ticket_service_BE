@@ -11,6 +11,7 @@ pymysql.install_as_MySQLdb()
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:*sashros*@localhost:3306/ticket_shop"
+app.config['SECRET_KEY'] = "super-secret"
 Base = declarative_base()
 
 db = SQLAlchemy(app)
@@ -29,9 +30,6 @@ class User(db.Model):
     phone = db.Column(db.String(10), nullable=False)
     user_status = db.Column(db.Enum('admin', 'user'), nullable=False)
 
-    def __repr__(self):
-        return f"<User {self.id} name = {self.first_name} last name = {self.last_name}>"
-
     def __init__(self, username, first_name, last_name, email, password, phone, user_status):
         self.username = username
         self.first_name = first_name
@@ -40,6 +38,10 @@ class User(db.Model):
         self.password = password
         self.phone = phone
         self.user_status = user_status
+
+    # def __repr__(self):
+    #     return f"<User {self.id} name = {self.first_name} last name = {self.last_name}>"
+
 
 
 class UserSchema(ma.Schema):

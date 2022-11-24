@@ -1,5 +1,9 @@
+import jwt
+
 from lab6.models import *
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask import session, redirect, url_for
+from flask_jwt import JWT, jwt_required, current_identity
 
 
 def user_validation(phone, email, user_status, first_name, last_name):
@@ -22,6 +26,34 @@ def purchase_validation(user_id, ticket_id, quantity, total_price, status):
     PurchaseSchema.Meta.validate_quantity(quantity)
     PurchaseSchema.Meta.validate_total_price(total_price)
     PurchaseSchema.Meta.validate_status(status)
+
+
+@app.route('/user/login', methods=['POST'])
+def login():
+    email = request.json.get("email", '')
+    password = request.json.get("password", '')
+
+    user = User.query.filter_by(email=email).first()
+
+    if user:
+        correct_password = check_password_hash(user.password, password)
+        if correct_password:
+            token = jwt.encode({"email": email, "user": user.username}, app.config['SECRET_KEY'])
+            session["username"] = user.username
+
+            return jsonify({"token": token.decode("UTF-8"), "username": user.username, "email": user.email})
+    return jsonify({"error": "Wrong credentials!"}), 401
+
+
+@app.route('/user/logout', methods=['DELETE'])
+def logout():
+    username = request.json["username"]
+    d = session
+    if "username" in session and username in session["username"]: # якщо існує колонка юзернейм і в ній є наш користувач
+        session.pop("username", None)
+        return jsonify({"message": "You successfully logged out"}), 200
+    else:
+        return jsonify({"message": "You haven't been logged in"}), 404
 
 
 @app.route('/user', methods=['POST'])
@@ -109,18 +141,6 @@ def delete_user(user_id):
     db.session.commit()
 
     return "Deleted successfully", 204
-
-
-@app.route('/user/login', methods=['POST'])
-def login():
-    # TODO: in 8 lab
-    return 200
-
-
-@app.route('/user/logout', methods=['DELETE'])
-def logout():
-    # TODO: in 8 lab
-    return 200
 
 
 @app.route('/tickets', methods=['GET'])
@@ -396,7 +416,8 @@ def get_all_purchases():
         return jsonify({"message": "Empty"}), 200
 
     for purchase in purchases:
-        result.append({'id': purchase.purchase_id, 'ticket_id': purchase.ticket_id, 'user_id': purchase.user_id, 'quantity': purchase.quantity,
+        result.append({'id': purchase.purchase_id, 'ticket_id': purchase.ticket_id, 'user_id': purchase.user_id,
+                       'quantity': purchase.quantity,
                        'total_price': purchase.total_price, 'status': purchase.status})
 
     return jsonify(result)
