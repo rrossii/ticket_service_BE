@@ -2,8 +2,7 @@ import jwt
 
 from lab6.models import *
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import session, redirect, url_for
-import flask
+from flask import session
 from flask_jwt import JWT, jwt_required, current_identity
 
 
@@ -37,7 +36,6 @@ def token_required(func):
             return jsonify({"message": "Token is missing"}), 403
         try:
             data = jwt.decode(token, app.config['SECRET_KEY'])
-            # current_user = User.query.filter_by(email=data['email']).first()
             current_user = db.session.query(User).filter_by(email=data["email"]).one()
 
             if current_user.user_status != "admin":
@@ -59,7 +57,6 @@ def token_required_for_user_operations(func):
             return jsonify({"message": "Token is missing"}), 403
         try:
             data = jwt.decode(token, app.config['SECRET_KEY'])
-            # current_user = User.query.filter_by(email=data['email']).first()
             current_user = db.session.query(User).filter_by(email=data["email"]).one()
 
             if current_user.user_id != int(kwargs["user_id"]):
@@ -116,7 +113,6 @@ def create_user():
     new_user = User(username, first_name, last_name, email, password_hashed, phone, user_status)
 
     user = User.query.filter_by(email=email).first()
-
     if user is not None:
         raise ValidationError("User with this email already exists, try again")
 
