@@ -3,6 +3,7 @@ import jwt
 from lab6.models import *
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session, redirect, url_for
+import flask
 from flask_jwt import JWT, jwt_required, current_identity
 
 
@@ -28,6 +29,50 @@ def purchase_validation(user_id, ticket_id, quantity, total_price, status):
     PurchaseSchema.Meta.validate_status(status)
 
 
+def token_required(func):
+    def decorated(*args, **kwargs):
+        token = request.headers["Authorization"]
+        token = token.replace("Bearer ", '')
+        if not token:
+            return jsonify({"message": "Token is missing"}), 403
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'])
+            # current_user = User.query.filter_by(email=data['email']).first()
+            current_user = db.session.query(User).filter_by(email=data["email"]).one()
+
+            if current_user.user_status != "admin":
+                return jsonify({"message": "No access"}), 404
+        except:
+            return jsonify({"message": "Token is invalid"}), 401
+        return func(*args, **kwargs)
+
+    decorated.__name__ = func.__name__
+    return decorated
+
+
+def token_required_for_user_operations(func):
+    def decorated(*args, **kwargs):
+        token = request.headers["Authorization"]
+        token = token.replace("Bearer ", '')
+
+        if not token:
+            return jsonify({"message": "Token is missing"}), 403
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'])
+            # current_user = User.query.filter_by(email=data['email']).first()
+            current_user = db.session.query(User).filter_by(email=data["email"]).one()
+
+            if current_user.user_id != int(kwargs["user_id"]):
+                return jsonify({"message": "No access"}), 404
+        except:
+            return jsonify({"message": "Token is invalid"}), 401
+
+        return func(*args, **kwargs)
+
+    decorated.__name__ = func.__name__
+    return decorated
+
+
 @app.route('/user/login', methods=['POST'])
 def login():
     email = request.json.get("email", '')
@@ -49,7 +94,7 @@ def login():
 def logout():
     username = request.json["username"]
     d = session
-    if "username" in session and username in session["username"]: # якщо існує колонка юзернейм і в ній є наш користувач
+    if "username" in session and username in session["username"]:  # якщо існує колонка юзернейм і в ній є наш користувач
         session.pop("username", None)
         return jsonify({"message": "You successfully logged out"}), 200
     else:
@@ -69,6 +114,11 @@ def create_user():
     password_hashed = generate_password_hash(password)
 
     new_user = User(username, first_name, last_name, email, password_hashed, phone, user_status)
+
+    user = User.query.filter_by(email=email).first()
+
+    if user is not None:
+        raise ValidationError("User with this email already exists, try again")
 
     user_validation(phone, email, user_status, first_name, last_name)
 
@@ -92,6 +142,7 @@ def get_all_users():
 
 
 @app.route('/user/<user_id>', methods=['PUT'])
+@token_required_for_user_operations
 def update_user_info(user_id):
     user = User.query.get(user_id)
 
@@ -132,6 +183,7 @@ def get_user_by_id(user_id):
 
 
 @app.route('/user/<user_id>', methods=['DELETE'])
+@token_required_for_user_operations
 def delete_user(user_id):
     user = User.query.get(user_id)
     if user is None:
@@ -158,6 +210,7 @@ def get_all_tickets():
 
 
 @app.route('/tickets', methods=['POST'])
+@token_required
 def create_ticket():
     name = request.json['name']
     price = request.json['price']
@@ -178,6 +231,7 @@ def create_ticket():
 
 
 @app.route('/tickets/<ticket_id>', methods=['PUT'])
+@token_required
 def update_ticket_info(ticket_id):
     ticket = Ticket.query.get(ticket_id)
 
@@ -208,6 +262,7 @@ def update_ticket_info(ticket_id):
 
 
 @app.route('/tickets/<ticket_id>', methods=['DELETE'])
+@token_required
 def delete_ticket(ticket_id):
     ticket = Ticket.query.get(ticket_id)
 
@@ -407,6 +462,7 @@ def cancel_booking(purchase_id):
 
 
 @app.route('/tickets/buy', methods=['GET'])
+@token_required
 def get_all_purchases():
     purchases = Purchase.query.all()
 
