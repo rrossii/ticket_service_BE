@@ -19,7 +19,6 @@ db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
 
-
 class User(db.Model):
     __tablename__ = 'user'
     user_id = db.Column(db.Integer, primary_key=True)

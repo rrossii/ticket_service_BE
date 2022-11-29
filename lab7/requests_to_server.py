@@ -81,9 +81,10 @@ def login():
         correct_password = check_password_hash(user.password, password)
         if correct_password:
             token = jwt.encode({"email": email, "user": user.username}, app.config['SECRET_KEY'])
+
             session["username"] = user.username
 
-            return jsonify({"token": token.decode("UTF-8"), "username": user.username, "email": user.email})
+            return jsonify({"token": token.decode('UTF-8'), "username": user.username, "email": user.email})
     return jsonify({"error": "Wrong credentials!"}), 401
 
 
@@ -474,6 +475,6 @@ def get_all_purchases():
 
     return jsonify(result)
 
-
+#
 if __name__ == "__main__":  # was with app.app.context()
     app.run(debug=True)

@@ -19,6 +19,8 @@ werkzeug = "*"
 flask-marshmallow = "*"
 marshmallow-sqlalchemy = "*"
 flask-jwt = "*"
+pytest = "*"
+pyjwt = "*"
 
 [dev-packages]
 
