@@ -13,27 +13,22 @@ def client():
 
     client = app.test_client()
 
-    # ctx = app.test_request_context()
-    # ctx.push()
     with app.app_context():
         with app.test_client():
             yield client
 
-    # ctx.pop()
 
-
-@pytest.fixture
-def app_with_db(client):
-    # db.create_all()
+@pytest.fixture()
+def app_with_database(client):
+    db.create_all()
 
     yield client
 
     db.session.commit()
-    # db.drop_all()
 
 
 @pytest.fixture
-def app_with_data(app_with_db):
+def data(app_with_database):
     user = User(
         username="mylogin",
         first_name="Rosana",
@@ -45,44 +40,81 @@ def app_with_data(app_with_db):
     )
 
     ticket = Ticket(
-        name="ticket1",
-        price=3000,
+        name="fancy_event",
+        price=2000,
         category_id=1,
-        quantity=20,
+        quantity=500,
         date="2022-09-09",
-        place="Lviv",
+        place="Kyiv",
         status="available"
     )
 
     db.session.add(user)
     db.session.add(ticket)
 
-    # db.session.commit()
+    with app.app_context():
+        db.session.commit()
 
-    yield app_with_db
+    yield app_with_database
 
-    db.session.execute(delete(User))
-    db.session.execute(delete(Ticket))
-    db.session.commit()
+    db.session.delete(user)
+    db.session.delete(ticket)
+    with app.app_context():
+        db.session.commit()
 
 
 @pytest.fixture
-def flask_login(app_with_data):
-    res = app_with_data.post("/user/login", json={"email": "ros@gmail.com", "user": "mylogin"})
+def data_admin(app_with_database):
+    user = User(
+        username="joe_cool",
+        first_name="Joe",
+        last_name="Smith",
+        email="joe@gmail.com",
+        password=generate_password_hash(password="helloworld"),
+        phone="0630674191",
+        user_status="admin"
+    )
 
-    # jwt = res.json["access_token"]
+    ticket = Ticket(
+        name="fancy_event",
+        price=2000,
+        category_id=1,
+        quantity=500,
+        date="2022-09-09",
+        place="Kyiv",
+        status="available"
+    )
+
+    db.session.add(user)
+    db.session.add(ticket)
+
+    with app.app_context():
+        db.session.commit()
+
+    yield app_with_database
+
+    db.session.delete(user)
+    db.session.delete(ticket)
+    with app.app_context():
+        db.session.commit()
+
+
+@pytest.fixture
+def flask_login(data):
+    res = data.post("/user/login", json={"email": "ros@gmail.com", "password": "12345678"})
+
     token = jwt.encode({"email": "ros@gmail.com", "user": "mylogin"}, app.config['SECRET_KEY'])
     return {"Authorization": f"Bearer {token}"}
 
-def test_get_ticket_by_id():
-    app.config['TESTING'] = True
 
-    client = app.test_client()
-    with app.app_context():
-        res = client.get('/tickets/3')
-    a = 5
-    assert res.status_code == 200
+@pytest.fixture
+def flask_login_admin(data_admin):
+    res = data_admin.post("/user/login", json={"email": "joe@gmail.com", "password": "helloworld"})
 
-if __name__ == "__main__":
-    pytest.main()
-    app.run()
+    token = jwt.encode({"email": "joe@gmail.com", "user": "joe_cool"}, app.config['SECRET_KEY'])
+    return {"Authorization": f"Bearer {token}"}
+
+#
+# if __name__ == "__main__":
+#     pytest.main()
+#     app.run()

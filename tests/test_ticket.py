@@ -1,24 +1,67 @@
-from tests.conftest import client, flask_login, app_with_db
+from tests.conftest import client, flask_login, app_with_database, data, data_admin
 from lab6.models import Ticket
 
-#
-# def test_error_create_ticket(app_with_data):
-#     res = app_with_data.post("/tickets", json={
-#         "name":"ticket1",
-#         "price":3000,
-#         "category_id":1,
-#         "quantity":20,
-#         "date":"2022-09-09",
-#         "place":"Lviv",
-#         "status":"available"
+
+def test_create_ticket(data_admin, flask_login_admin):
+    res = data_admin.post("/tickets",
+                          json={
+                              "name": "fancy_event",
+                              "price": 2000,
+                              "category_id": 1,
+                              "quantity": 500,
+                              "date": "2022-09-09",
+                              "place": "Kyiv",
+                              "status": "available"
+                          },
+                          headers=flask_login_admin)
+
+    assert res.status_code == 200
+
+
+def test_create_ticket_error(data, flask_login):
+    res = data.post("/tickets",
+                    json={
+                        "name": "fancy_event",
+                        "price": 2000,
+                        "category_id": 1,
+                        "quantity": 500,
+                        "date": "2022-09-09",
+                        "place": "Kyiv",
+                        "status": "available"
+                    },
+                    headers=flask_login)
+
+    assert res.status_code == 404
+
+# def test_get_ticket_by_id(client):
+#     res = client.get('/tickets/22')
+#     assert res.status_code == 200
+
+# def test_error_create_ticket(app_with_data_admin):
+#     res = app_with_data_admin.post("/ticket", json={
+#         "seat_number": 1,
+#         "price": 3000.99,
+#         "is_bought": 1,
+#         "is_booked": 1
 #     })
 #
 #     assert res.status_code == 401
-
-def test_get_ticket_by_id(client):
-    res = client.get('/tickets/3')
-    a = 5
-    assert res.status_code == 200
+#
+#
+# def test_delete_ticket_by_id(app_with_db, flask_login):
+#     res = app_with_db.get('/ticket/8', headers=flask_login)
+#     assert res.status_code == 200
+#
+#
+# def test_error_update_ticket(app_with_data_admin, flask_login_admin):
+#     res = app_with_data_admin.put("/ticket", json={
+#         "idticket": 5,
+#         "seat_number": 1,
+#         "price": 3000.99,
+#         "is_bought": 0,
+#         "is_booked": 1
+#     }, headers=flask_login_admin)
+#     assert res.status_code == 404
 
 
 # def test_get_all_tickets(client):

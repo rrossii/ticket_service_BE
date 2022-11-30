@@ -31,7 +31,13 @@ def purchase_validation(user_id, ticket_id, quantity, total_price, status):
 def token_required(func):
     def decorated(*args, **kwargs):
         token = request.headers["Authorization"]
-        token = token.replace("Bearer ", '')
+
+        if "Bearer b" in token:
+            token = token.replace("Bearer b", '')
+            token = token.replace("'", '')
+        else:
+            token = token.replace("Bearer ", '')
+
         if not token:
             return jsonify({"message": "Token is missing"}), 403
         try:
