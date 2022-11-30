@@ -21,6 +21,7 @@ marshmallow-sqlalchemy = "*"
 flask-jwt = "*"
 pytest = "*"
 pyjwt = "*"
+coverage = "*"
 
 [dev-packages]
 
