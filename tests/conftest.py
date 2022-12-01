@@ -84,8 +84,6 @@ def data(app_with_database, fake_db):
 
     yield app_with_database
 
-    # fake_db.session.delete(user)
-    # fake_db.session.delete(ticket)
     fake_db.session.execute(delete(User))
     fake_db.session.execute(delete(Ticket))
     fake_db.session.commit()
@@ -120,8 +118,6 @@ def data_admin(app_with_database, fake_db):
 
     yield app_with_database
 
-    # fake_db.session.delete(user)
-    # fake_db.session.delete(ticket)
     fake_db.session.execute(delete(User))
     fake_db.session.execute(delete(Ticket))
     fake_db.session.commit()
