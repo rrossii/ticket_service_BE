@@ -58,7 +58,7 @@ def test_update_user_error(data, flask_login):
 
 
 def test_delete_user_error(data, flask_login):
-    res = data.delete("/user/1", headers=flask_login)
+    res = data.delete("/user/2", headers=flask_login)
     assert res.status_code == 404
 
 

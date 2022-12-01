@@ -4,7 +4,7 @@ from lab6.models import User, Ticket, Purchase
 from lab7.requests_to_server import app
 from werkzeug.security import generate_password_hash
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import delete
+from sqlalchemy import delete, or_
 import jwt
 
 
@@ -46,12 +46,12 @@ def app_with_database(client, fake_db):
 
     yield client
 
-    fake_db.session.commit()
+    # fake_db.session.commit()
 
     fake_db.session.execute(delete(User))
     fake_db.session.execute(delete(Ticket))
     fake_db.session.execute(delete(Purchase))
-    # fake_db.session.commit()
+    fake_db.session.commit()
 
 
 @pytest.fixture
@@ -84,8 +84,11 @@ def data(app_with_database, fake_db):
 
     yield app_with_database
 
-    fake_db.session.execute(delete(User))
-    fake_db.session.execute(delete(Ticket))
+    fake_db.session.query(User).filter_by(email="ros@gmail.com").delete()
+    fake_db.session.query(User).filter_by(email="ros@gmail.com").delete()
+
+    # fake_db.session.execute(delete(User))
+    # fake_db.session.execute(delete(Ticket))
     fake_db.session.commit()
 
 
@@ -118,8 +121,11 @@ def data_admin(app_with_database, fake_db):
 
     yield app_with_database
 
-    fake_db.session.execute(delete(User))
-    fake_db.session.execute(delete(Ticket))
+    fake_db.session.query(User).filter_by(email="ros@gmail.com").delete()
+    fake_db.session.query(User).filter_by(email="ros@gmail.com").delete()
+
+    # fake_db.session.execute(delete(User))
+    # fake_db.session.execute(delete(Ticket))
     fake_db.session.commit()
 
 
