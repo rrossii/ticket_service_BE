@@ -49,6 +49,62 @@ def test_get_all_tickets(app_with_database):
     assert res.status_code == 200
 
 
+def test_get_tickets_by_status(app_with_database):
+    res = app_with_database.get("/tickets/findByStatus",
+                                json={
+                                    "status": "available"
+                                })
+    assert res.status_code == 200
+
+
+def test_get_tickets_by_status_error(app_with_database):
+    res = app_with_database.get("/tickets/findByStatus",
+                                json={
+                                    "status": "nonsense"
+                                })
+    assert res.status_code == 404
+
+
+def test_get_tickets_by_status_error_invalid_status(app_with_database):
+    res = app_with_database.get("/tickets/findByStatus",
+                                json={
+                                    "status": 456
+                                })
+    assert res.status_code == 400
+
+
+def test_get_tickets_by_category(app_with_database):
+    res = app_with_database.get("/tickets/findByCategory",
+                                json={
+                                    "category": "festival"
+                                })
+    assert res.status_code == 200
+
+
+def test_get_tickets_by_category_error_invalid_category(app_with_database):
+    res = app_with_database.get("/tickets/findByCategory",
+                                json={
+                                    "category": 432
+                                })
+    assert res.status_code == 400
+
+
+def test_get_tickets_by_date(app_with_database):
+    res = app_with_database.get("/tickets/findByDate",
+                                json={
+                                    "date": "2002-09-08 00:00:00"
+                                })
+    assert res.status_code == 200
+
+
+def test_get_tickets_by_date_error(app_with_database):
+    res = app_with_database.get("/tickets/findByDate",
+                                json={
+                                    "date": "2012-04-11 00:00:00"
+                                })
+    assert res.status_code == 404
+
+
 # update error when not admin updates
 # maybe do another test for checking if ticket not exists then error
 def test_update_ticket_info_error(data, flask_login):
@@ -76,3 +132,5 @@ def test_update_ticket_info_error(data, flask_login):
 def test_delete_ticket_error(app_with_database, flask_login):
     res = app_with_database.delete('/tickets/67', headers=flask_login)
     assert res.status_code == 404
+
+

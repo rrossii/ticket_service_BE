@@ -321,14 +321,15 @@ def get_tickets_by_status():
 @app.route('/tickets/findByCategory', methods=['GET'])
 def get_tickets_by_category():
     category_name = request.json['category']
+
+    if not isinstance(category_name, str):
+        return jsonify({"message": "Invalid category value"}), 400
+
     category = db.session.query(Category).filter_by(name=category_name).one()
     categ_id = category.category_id
 
     if category is None:
         return jsonify({"message": "Category not found"}), 404
-
-    if not isinstance(category_name, str):
-        return jsonify({"message": "Invalid category value"}), 400
 
     tickets = Ticket.query.filter_by(category_id=categ_id)
 
