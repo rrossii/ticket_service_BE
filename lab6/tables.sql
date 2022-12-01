@@ -4,7 +4,7 @@ create table user(
 	first_name varchar(45) not null,
 	last_name varchar(45) not null,
 	email varchar(45) not null,
-	password varchar(45) not null,
+	password varchar(255) not null,
 	phone varchar(20) not null,
 	user_status enum('admin', 'user'),
 	primary key (user_id));
@@ -37,6 +37,5 @@ create table purchase(
 	status enum('bought', 'booked', 'canceled'),
 	primary key (purchase_id),
 	constraint fk_purchase_ticket_1 foreign key (ticket_id) references ticket(ticket_id) on delete cascade,
--- 	constraint fk_purchase_user_1 foreign key (user_id) references user(user_id) on delete cascade
 	foreign key (user_id) references user(user_id)
 	);

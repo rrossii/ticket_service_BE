@@ -1,22 +1,33 @@
 import pytest
 from lab6.models import User, Ticket
-from lab7.requests_to_server import app
+# from lab7.requests_to_server import app
+from lab7.requests_to_server import app, db
 from werkzeug.security import generate_password_hash
 from flask_sqlalchemy import SQLAlchemy
 import jwt
 
-db = SQLAlchemy(app)
+
+@pytest.fixture(scope="session")
+def _app():
+    app.config['DEBUG'] = True
+    app.config['TESTING'] = True
+    app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:*sashros*@localhost:3306/test_ticket_shop"
+
+    yield app
+
+
+@pytest.fixture(scope="session")
+def fake_db(_app):
+    fake = SQLAlchemy(_app)
+
+    yield fake
 
 
 @pytest.fixture(scope='session')
-def client():
-    app.config['DEBUG'] = True
-    app.config['TESTING'] = True
-    # app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:*sashros*@localhost:3306/test_ticket_shop"
+def client(_app):
+    client = _app.test_client()
 
-    client = app.test_client()
-
-    ctx = app.test_request_context()
+    ctx = _app.test_request_context()
     ctx.push()
 
     yield client
@@ -24,21 +35,21 @@ def client():
     ctx.pop()
 
 
-@pytest.fixture(scope='session')
-def app_with_database(client):
+@pytest.fixture
+def app_with_database(client, fake_db):
     # insert tables to db
 
     with app.app_context():
         # with client:
-        db.create_all()
+        fake_db.create_all()
 
     yield client
-    db.drop_all()
-    db.session.commit()
-    print("teardown")
+    fake_db.drop_all()
+    fake_db.session.commit()
+
 
 @pytest.fixture
-def data(app_with_database):
+def data(app_with_database, fake_db):
     with app.app_context():
         user = User(
             username="mylogin",
@@ -60,20 +71,20 @@ def data(app_with_database):
             status="available"
         )
 
-        db.session.add(user)
-        db.session.add(ticket)
+        fake_db.session.add(user)
+        fake_db.session.add(ticket)
 
-        db.session.commit()
+        fake_db.session.commit()
 
     yield app_with_database
 
-    db.session.delete(user)
-    db.session.delete(ticket)
-    db.session.commit()
+    fake_db.session.delete(user)
+    fake_db.session.delete(ticket)
+    fake_db.session.commit()
 
 
 @pytest.fixture
-def data_admin(app_with_database):
+def data_admin(app_with_database, fake_db):
     with app.app_context():
         user = User(
             username="joe_cool",
@@ -94,16 +105,17 @@ def data_admin(app_with_database):
             place="Kyiv",
             status="available"
         )
-        db.session.add(user)
-        db.session.add(ticket)
+        fake_db.session.add(user)
+        fake_db.session.add(ticket)
 
-        db.session.commit()
+        fake_db.session.commit()
 
     yield app_with_database
 
-    db.session.delete(user)
-    db.session.delete(ticket)
-    db.session.commit()
+    fake_db.session.delete(user)
+    fake_db.session.delete(ticket)
+    fake_db.session.commit()
+
 
 @pytest.fixture
 def flask_login(data):
