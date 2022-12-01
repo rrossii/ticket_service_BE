@@ -30,6 +30,10 @@
 ```
   app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://username:password@host:port/database_name" 
 ```
+* write URI: for test database:
+```
+  app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://username:password@host:port/test_database_name" 
+```
 * for creating migrations you need Alembic module
 ```
     pipenv install alembic
@@ -45,6 +49,27 @@
 * to create migration use
 ```
     alembic upgrade head
+```
+
+### Unit Tests
+* install pytest module
+```
+    pipenv install pytest
+```
+* install coverage module
+```
+    pipenv install coverage
+```
+* create conftest.py 
+* create your tests in another files
+* while testing use test_ticket_shop; while running queries use ticket_shop
+* to run tests:
+```
+    coverage run -m pytest
+```
+* to show percent of coverage
+```
+    coverage report -m
 ```
 ### ER-diagram
 ![ticket_shop](images/ticket_shop.png)
