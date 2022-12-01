@@ -36,7 +36,7 @@ def client(_app):
     ctx.pop()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def app_with_database(client, fake_db):
     # with app.app_context():
     #     # with client:
@@ -46,12 +46,12 @@ def app_with_database(client, fake_db):
 
     yield client
 
-    # fake_db.drop_all()
+    fake_db.session.commit()
 
     fake_db.session.execute(delete(User))
     fake_db.session.execute(delete(Ticket))
     fake_db.session.execute(delete(Purchase))
-    fake_db.session.commit()
+    # fake_db.session.commit()
 
 
 @pytest.fixture
