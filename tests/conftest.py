@@ -1,9 +1,10 @@
 import pytest
-from lab6.models import User, Ticket
+from lab6.models import User, Ticket, Purchase
 # from lab7.requests_to_server import app
-from lab7.requests_to_server import app, db
+from lab7.requests_to_server import app
 from werkzeug.security import generate_password_hash
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import delete
 import jwt
 
 
@@ -37,14 +38,19 @@ def client(_app):
 
 @pytest.fixture
 def app_with_database(client, fake_db):
-    # insert tables to db
+    # with app.app_context():
+    #     # with client:
+    #     fake_db.create_all()
 
-    with app.app_context():
-        # with client:
-        fake_db.create_all()
+    fake_db.create_all()
 
     yield client
-    fake_db.drop_all()
+
+    # fake_db.drop_all()
+
+    fake_db.session.execute(delete(User))
+    fake_db.session.execute(delete(Ticket))
+    fake_db.session.execute(delete(Purchase))
     fake_db.session.commit()
 
 
@@ -78,8 +84,10 @@ def data(app_with_database, fake_db):
 
     yield app_with_database
 
-    fake_db.session.delete(user)
-    fake_db.session.delete(ticket)
+    # fake_db.session.delete(user)
+    # fake_db.session.delete(ticket)
+    fake_db.session.execute(delete(User))
+    fake_db.session.execute(delete(Ticket))
     fake_db.session.commit()
 
 
@@ -112,8 +120,10 @@ def data_admin(app_with_database, fake_db):
 
     yield app_with_database
 
-    fake_db.session.delete(user)
-    fake_db.session.delete(ticket)
+    # fake_db.session.delete(user)
+    # fake_db.session.delete(ticket)
+    fake_db.session.execute(delete(User))
+    fake_db.session.execute(delete(Ticket))
     fake_db.session.commit()
 
 

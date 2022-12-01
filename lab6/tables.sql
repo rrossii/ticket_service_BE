@@ -37,5 +37,5 @@ create table purchase(
 	status enum('bought', 'booked', 'canceled'),
 	primary key (purchase_id),
 	constraint fk_purchase_ticket_1 foreign key (ticket_id) references ticket(ticket_id) on delete cascade,
-	foreign key (user_id) references user(user_id)
+	constraint fk_purchase_user1 foreign key (user_id) references user(user_id) on delete cascade
 	);
