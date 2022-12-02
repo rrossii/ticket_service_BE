@@ -384,7 +384,7 @@ def buy_ticket(ticket_id):
         ticket.status = 'sold out'
         return jsonify({"message": "These tickets are sold out"}), 404
     if ticket.quantity < quantity:
-        return jsonify({"message": f"There are only {quantity} tickets"}), 404
+        return jsonify({"message": f"There are only {ticket.quantity} tickets"}), 404
     if ticket.quantity == 1:
         ticket.status = 'sold out'
 
@@ -430,7 +430,7 @@ def book_ticket(ticket_id):
         ticket.status = 'sold out'
         return jsonify({"message": "These tickets are sold out"}), 404
     if ticket.quantity < quantity:
-        return jsonify({"message": f"There are only {quantity} tickets"}), 404
+        return jsonify({"message": f"There are only {ticket.quantity} tickets"}), 404
     if ticket.quantity == 1:
         ticket.status = 'sold out'
 
