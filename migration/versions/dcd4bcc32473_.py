@@ -9,6 +9,7 @@ Create Date: 2022-11-06 18:42:30.701267
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy import Column, Integer, String, Enum, ForeignKey, DateTime
+from sqlalchemy.orm import relationship
 
 # revision identifiers, used by Alembic.
 revision = 'a2405180edba'
@@ -16,6 +17,7 @@ down_revision = None
 branch_labels = None
 depends_on = None
 
+# !!!!!!!!!!!!!!!1MAKE SOMEDAY ON DELETE CASCADE TO FOREIGN KEYS!!!!!!!!!!!!
 
 def upgrade() -> None:
     op.create_table(

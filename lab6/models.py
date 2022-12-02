@@ -10,8 +10,8 @@ pymysql.install_as_MySQLdb()
 
 app = Flask(__name__)
 
-# app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:*sashros*@localhost:3306/ticket_shop"
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:*sashros*@localhost:3306/test_ticket_shop"
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:*sashros*@localhost:3306/ticket_shop"
+# app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:*sashros*@localhost:3306/test_ticket_shop"
 app.config['SECRET_KEY'] = "super-secret"
 Base = declarative_base()
 

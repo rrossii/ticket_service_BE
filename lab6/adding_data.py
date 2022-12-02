@@ -1,5 +1,6 @@
 from models import db, app, User, Ticket, Category, Purchase
 from flask_sqlalchemy.session import Session
+from werkzeug.security import generate_password_hash
 
 import pymysql
 pymysql.install_as_MySQLdb()
@@ -8,14 +9,14 @@ session = Session(db)
 
 with app.app_context():
     admin = User(username='admin1', first_name='Rosana', last_name='Klym', email='annros2003@gmail.com',
-                 password='12345', phone='0984337438', user_status='admin')
+                 password=generate_password_hash('12345'), phone='0984337438', user_status='admin')
 
     user1 = User(username='user1', first_name='John', last_name='Smith', email='jo@gmail.com',
-                 password='1234567', phone='0986756432', user_status='user')
+                 password=generate_password_hash('1234567'), phone='0986756432', user_status='user')
     user2 = User(username='user2', first_name='Monica', last_name='Bale', email='moni@gmail.com',
-                 password='12**1', phone='0965656832', user_status='user')
+                 password=generate_password_hash('12**1'), phone='0965656832', user_status='user')
     user3 = User(username='user3', first_name='Tom', last_name='Hanks', email='tommy@mail.com',
-                 password='helloworld', phone='0936756832', user_status='user')
+                 password=generate_password_hash('helloworld'), phone='0936756832', user_status='user')
 
     db.session.add(admin)
     db.session.add(user1)
