@@ -51,7 +51,7 @@ def upgrade() -> None:
     op.create_table(
         'purchase',
         Column('purchase_id', Integer, primary_key=True, nullable=False),
-        Column('ticket_id', Integer, ForeignKey("ticket.ticked_id"), nullable=False),
+        Column('ticket_id', Integer, ForeignKey("ticket.ticket_id"), nullable=False),
         Column('user_id', Integer, ForeignKey("user.user_id"), nullable=False),
         Column('quantity', Integer, nullable=False),
         Column('total_price', Integer, nullable=False),
