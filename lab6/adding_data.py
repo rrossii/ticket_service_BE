@@ -22,7 +22,6 @@ with app.app_context():
     db.session.add(user2)
     db.session.add(user3)
     db.session.commit()
-    print('user table added')
 
     category1 = Category(name='theater')
     category2 = Category(name='festival')

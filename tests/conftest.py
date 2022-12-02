@@ -20,6 +20,32 @@ def _app():
 @pytest.fixture(scope="session")
 def fake_db(_app):
     fake = SQLAlchemy(_app)
+    user = User(
+        username="my_nickname",
+        first_name="hello",
+        last_name="world",
+        email="dude@mail.com",
+        password=generate_password_hash(password="12345"),
+        phone="0986789678",
+        user_status="user"
+    )
+
+    ticket = Ticket(
+        name="ticket_x",
+        price=200,
+        category_id=1,
+        quantity=550,
+        date="2002-09-08",
+        place="Kyiv",
+        status="available"
+    )
+    fake.session.add(user)
+    fake.session.add(ticket)
+
+    user.user_id = 1
+    ticket.ticket_id = 1
+
+    fake.session.commit()
 
     yield fake
 
@@ -38,15 +64,9 @@ def client(_app):
 
 @pytest.fixture(scope="session")
 def app_with_database(client, fake_db):
-    # with app.app_context():
-    #     # with client:
-    #     fake_db.create_all()
-
     fake_db.create_all()
 
     yield client
-
-    # fake_db.session.commit()
 
     fake_db.session.execute(delete(User))
     fake_db.session.execute(delete(Ticket))
