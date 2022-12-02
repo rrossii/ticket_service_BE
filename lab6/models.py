@@ -10,8 +10,8 @@ pymysql.install_as_MySQLdb()
 
 app = Flask(__name__)
 
-# app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:*sashros*@localhost:3306/ticket_shop"
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:*sashros*@localhost:3306/test_ticket_shop"
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:*sashros*@localhost:3306/ticket_shop"
+# app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:*sashros*@localhost:3306/test_ticket_shop"
 app.config['SECRET_KEY'] = "super-secret"
 Base = declarative_base()
 
@@ -219,16 +219,6 @@ purchase_schema = PurchaseSchema()
 
 # with app.app_context():
 #     db.create_all()
-
-
-@app.route("/", methods=['GET'])
-def home():
-    return "Hello Home!"
-
-
-@app.route("/api/v1/hello-world-8")  # was /localhost:5000
-def hello():
-    return "<h2 style='color:green'>Hello World! 8</h2>"
 
 
 if __name__ == "__main__":  # was with app.app.context()
