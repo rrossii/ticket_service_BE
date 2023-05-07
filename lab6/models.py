@@ -5,13 +5,16 @@ from flask_marshmallow import Marshmallow
 from marshmallow import validates, ValidationError
 # import requests
 import pymysql
+from flask_cors import CORS
+
+app = Flask(__name__)
+CORS(app)
 
 pymysql.install_as_MySQLdb()
 
-app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:*sashros*@localhost:3306/ticket_shop"
-# app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:*sashros*@localhost:3306/test_ticket_shop"
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:*Sash_Ros*19@localhost:3306/ticket_shop"
+# app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:*Sash_Ros*19@localhost:3306/test_ticket_shop"
 app.config['SECRET_KEY'] = "super-secret"
 Base = declarative_base()
 
