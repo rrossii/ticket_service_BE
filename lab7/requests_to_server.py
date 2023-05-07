@@ -4,6 +4,7 @@ from lab6.models import *
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session
 from flask_jwt import JWT, jwt_required, current_identity
+from flask_cors import cross_origin
 
 
 def user_validation(phone, email, user_status, first_name, last_name):
@@ -82,6 +83,7 @@ def token_required_for_user_operations(func):
 
 
 @app.route('/user/login', methods=['POST'])
+@cross_origin()
 def login():
     # ======
     db.session.commit()
@@ -99,7 +101,8 @@ def login():
 
             session["username"] = user.username
 
-            return jsonify({"token": token.decode('UTF-8'), "username": user.username, "email": user.email})
+            return jsonify({"first_name": user.first_name, "last_name": user.last_name, "token": token.decode('UTF-8'),
+                            "username": user.username, "email": user.email, "user_status" : user.user_status})
     return jsonify({"error": "Wrong credentials!"}), 401
 
 
@@ -114,7 +117,7 @@ def logout():
         return jsonify({"message": "You haven't been logged in"}), 404
 
 
-@app.route('/user', methods=['POST'])
+@app.route('/user/register', methods=['POST'])
 def create_user():
     username = request.json['username']
     first_name = request.json['first_name']
@@ -124,6 +127,8 @@ def create_user():
     phone = request.json['phone']
     user_status = request.json['user_status']
 
+    user_status = user_status.lower()
+
     password_hashed = generate_password_hash(password)
 
     new_user = User(username, first_name, last_name, email, password_hashed, phone, user_status)
@@ -131,13 +136,20 @@ def create_user():
     user = User.query.filter_by(email=email).first()
     if user is not None:
         raise ValidationError("User with this email already exists, try again")
+    if len(password) < 8:
+        raise ValidationError("Password must be greater than or equal to 8")
 
     user_validation(phone, email, user_status, first_name, last_name)
 
     db.session.add(new_user)
     db.session.commit()
 
-    return user_schema.jsonify(new_user)
+    res = user_schema.jsonify(new_user)
+    res.headers.add('Access-Control-Allow-Origin', '*')
+    res.headers.add('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+    res.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+    res.headers.add('Access-Control-Allow-Credentials', True)
+    return res
 
 
 @app.route('/user', methods=['GET'])
