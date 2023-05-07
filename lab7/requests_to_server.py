@@ -133,9 +133,12 @@ def create_user():
 
     new_user = User(username, first_name, last_name, email, password_hashed, phone, user_status)
 
-    user = User.query.filter_by(email=email).first()
-    if user is not None:
-        raise ValidationError("User with this email already exists, try again")
+    user_by_email = User.query.filter_by(email=email).first()
+    user_by_username = User.query.filter_by(username=username).first()
+    if user_by_email is not None:
+        return jsonify({"error": "User with this email already exists, try again"}), 404
+    if user_by_username is not None:
+        return jsonify({"error": "User with this username already exists, try again"}), 404
     if len(password) < 8:
         raise ValidationError("Password must be greater than or equal to 8")
 
