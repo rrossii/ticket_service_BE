@@ -101,8 +101,8 @@ def login():
 
             session["username"] = user.username
 
-            return jsonify({"first_name": user.first_name, "last_name": user.last_name, "token": token.decode('UTF-8'),
-                            "username": user.username, "email": user.email, "user_status" : user.user_status})
+            return jsonify({"first_name": user.first_name, "last_name": user.last_name, "token": token.decode('UTF-8'), "password": user.password, "phone": user.phone,
+                            "username": user.username, "email": user.email, "user_status" : user.user_status, "user_id" : user.user_id})
     return jsonify({"error": "Wrong credentials!"}), 401
 
 
@@ -180,19 +180,19 @@ def update_user_info(user_id):
     first_name = request.json['first_name']
     last_name = request.json['last_name']
     email = request.json['email']
-    password = request.json['password']
+    # password = request.json['password'] // відновити потім коли буде змога змінити пароль
     phone = request.json['phone']
-    user_status = request.json['user_status']
 
     user.username = username
     user.first_name = first_name
     user.last_name = last_name
     user.email = email
-    user.password = generate_password_hash(password)
+    # user.password = generate_password_hash(password)
     user.phone = phone
-    user.user_status = user_status
 
-    user_validation(phone, email, user_status, first_name, last_name)
+    UserSchema.Meta.validate_phone(phone)
+    UserSchema.Meta.validate_email(email)
+    UserSchema.Meta.validate_name(None, first_name, last_name)
 
     db.session.commit()
 
