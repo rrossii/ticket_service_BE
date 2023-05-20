@@ -6,6 +6,8 @@ from flask import session
 from flask_jwt import JWT, jwt_required, current_identity
 from flask_cors import cross_origin
 
+from lab6.utils import *
+
 
 def user_validation(phone, email, user_status, first_name, last_name):
     UserSchema.Meta.validate_phone(phone)
@@ -101,8 +103,10 @@ def login():
 
             session["username"] = user.username
 
-            return jsonify({"first_name": user.first_name, "last_name": user.last_name, "token": token.decode('UTF-8'), "password": user.password, "phone": user.phone,
-                            "username": user.username, "email": user.email, "user_status" : user.user_status, "user_id" : user.user_id})
+            return jsonify({"first_name": user.first_name, "last_name": user.last_name, "token": token.decode('UTF-8'),
+                            "password": user.password, "phone": user.phone,
+                            "username": user.username, "email": user.email, "user_status": user.user_status,
+                            "user_id": user.user_id})
     return jsonify({"error": "Wrong credentials!"}), 401
 
 
@@ -110,7 +114,8 @@ def login():
 def logout():
     username = request.json["username"]
     d = session
-    if "username" in session and username in session["username"]:  # якщо існує колонка юзернейм і в ній є наш користувач
+    if "username" in session and username in session[
+        "username"]:  # якщо існує колонка юзернейм і в ній є наш користувач
         session.pop("username", None)
         return jsonify({"message": "You successfully logged out"}), 200
     else:
@@ -231,7 +236,7 @@ def get_all_tickets():
     for ticket in tickets:
         result.append({'ticket_id': ticket.ticket_id, 'name': ticket.name, 'price': ticket.price,
                        'category_id': ticket.category_id, 'quantity': ticket.quantity,
-                       'date': ticket.date, 'place': ticket.place, "status": ticket.status})
+                       'date': ticket.date, 'place': ticket.place, "status": ticket.status, "info": ticket.info})
 
     return jsonify(result)
 
@@ -241,15 +246,17 @@ def get_all_tickets():
 def create_ticket():
     name = request.json['name']
     price = request.json['price']
-    category_id = request.json['category_id']
+    category = request.json['category']
     quantity = request.json['quantity']
     date = request.json['date']
     place = request.json['place']
-    status = request.json['status']
+    info = request.json['info']
 
-    new_ticket = Ticket(name, price, category_id, quantity, date, place, status)
+    category_id = category_name_to_id(category)
 
-    ticket_validation(price, category_id, quantity, status)
+    new_ticket = Ticket(name, price, category_id, quantity, date, place, "available", info)
+
+    ticket_validation(price, category_id, quantity, "available")
 
     db.session.add(new_ticket)
     db.session.commit()
@@ -325,7 +332,7 @@ def get_tickets_by_status():
     for ticket in tickets:
         result.append({'ticket_id': ticket.ticket_id, 'name': ticket.name, 'price': ticket.price,
                        'category_id': ticket.category_id, 'quantity': ticket.quantity,
-                       'date': ticket.date, 'place': ticket.place, "status": ticket.status})
+                       'date': ticket.date, 'place': ticket.place, "status": ticket.status, "info": ticket.info})
 
     if len(result) == 0:
         return jsonify({"message": "Tickets not found"}), 404
@@ -353,7 +360,7 @@ def get_tickets_by_category():
     for ticket in tickets:
         result.append({'ticket_id': ticket.ticket_id, 'name': ticket.name, 'price': ticket.price,
                        'category_id': ticket.category_id, 'quantity': ticket.quantity,
-                       'date': ticket.date, 'place': ticket.place, "status": ticket.status})
+                       'date': ticket.date, 'place': ticket.place, "status": ticket.status, "info": ticket.info})
 
     if len(result) == 0:
         return jsonify({"message": "Tickets not found"}), 404
@@ -371,7 +378,7 @@ def get_tickets_by_date():
     for ticket in tickets:
         result.append({'ticket_id': ticket.ticket_id, 'name': ticket.name, 'price': ticket.price,
                        'category_id': ticket.category_id, 'quantity': ticket.quantity,
-                       'date': ticket.date, 'place': ticket.place, "status": ticket.status})
+                       'date': ticket.date, 'place': ticket.place, "status": ticket.status, "info": ticket.info})
 
     if len(result) == 0:
         return jsonify({"message": "Tickets not found"}), 404
@@ -505,6 +512,7 @@ def get_all_purchases():
                        'total_price': purchase.total_price, 'status': purchase.status})
 
     return jsonify(result)
+
 
 #
 if __name__ == "__main__":  # was with app.app.context()

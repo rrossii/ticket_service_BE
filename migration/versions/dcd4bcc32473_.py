@@ -47,7 +47,8 @@ def upgrade() -> None:
         Column('quantity', Integer, nullable=False),
         Column('date', DateTime, nullable=False),
         Column('place', String(45), nullable=False),
-        Column('status', Enum("available", "sold out"))
+        Column('status', Enum("available", "sold out")),
+        Column('info', String(1500), nullable=False)
     )
 
     op.create_table(

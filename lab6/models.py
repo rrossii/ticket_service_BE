@@ -117,12 +117,13 @@ class Ticket(db.Model):
     date = db.Column(db.Date, nullable=False)
     place = db.Column(db.String(45), nullable=False)
     status = db.Column(db.Enum('available', 'sold out'), nullable=False)
+    info = db.Column(db.String(1500), nullable=False)
 
     # commented this when the problem was with deleting ticket from database
     # def __repr__(self):
     #     return f"<{self.name} costs {self.price}, takes place in {self.place}. It is {self.status} on site>"
 
-    def __init__(self, name, price, category_id, quantity, date, place, status):
+    def __init__(self, name, price, category_id, quantity, date, place, status, info):
         self.name = name
         self.price = price
         self.category_id = category_id
@@ -130,11 +131,12 @@ class Ticket(db.Model):
         self.date = date
         self.place = place
         self.status = status
+        self.info = info
 
 
 class TicketSchema(ma.Schema):
     class Meta:
-        fields = ('name', 'price', 'category_id', 'quantity', 'date', 'place', 'status')
+        fields = ('name', 'price', 'category_id', 'quantity', 'date', 'place', 'status', 'info')
 
         @validates("price")
         def validate_price(self):
@@ -157,10 +159,10 @@ class TicketSchema(ma.Schema):
                 raise ValidationError("Ticket status must be 'available' either 'sold out'")
             if self == 'sold out' and args[0] > 0:
                 raise ValidationError(
-                    f"Change input data, ticket cannot have status 'sold out' with quantity {args[0]}")
+                    f"Please change input data, ticket cannot have status 'sold out' with quantity {args[0]}")
             if self == 'available' and args[0] <= 0:
                 raise ValidationError(
-                    f"Change input data, ticket cannot have status 'available' with quantity {args[0]}")
+                    f"Please change input data, ticket cannot have status 'available' with quantity {args[0]}")
 
 
 ticket_schema = TicketSchema()
