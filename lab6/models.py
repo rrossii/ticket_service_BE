@@ -118,12 +118,13 @@ class Ticket(db.Model):
     place = db.Column(db.String(45), nullable=False)
     status = db.Column(db.Enum('available', 'sold out'), nullable=False)
     info = db.Column(db.String(1500), nullable=False)
+    image = db.Column(db.String(250), nullable=False)
 
     # commented this when the problem was with deleting ticket from database
     # def __repr__(self):
     #     return f"<{self.name} costs {self.price}, takes place in {self.place}. It is {self.status} on site>"
 
-    def __init__(self, name, price, category_id, quantity, date, place, status, info):
+    def __init__(self, name, price, category_id, quantity, date, place, status, info, image):
         self.name = name
         self.price = price
         self.category_id = category_id
@@ -132,11 +133,12 @@ class Ticket(db.Model):
         self.place = place
         self.status = status
         self.info = info
+        self.image = image
 
 
 class TicketSchema(ma.Schema):
     class Meta:
-        fields = ('name', 'price', 'category_id', 'quantity', 'date', 'place', 'status', 'info')
+        fields = ('name', 'price', 'category_id', 'quantity', 'date', 'place', 'status', 'info', 'image')
 
         @validates("price")
         def validate_price(self):

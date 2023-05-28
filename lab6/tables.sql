@@ -25,6 +25,7 @@ create table ticket(
 	place varchar(45) not null,
 	status enum('available', 'sold out'),
 	info varchar(1500) not null,
+	image varchar(250) not null,
 	primary key (ticket_id),
 	constraint fk_ticket_1 foreign key (category_id) references category(category_id) on delete cascade
 	);

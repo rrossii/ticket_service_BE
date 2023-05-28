@@ -36,9 +36,10 @@ with app.app_context():
     db.session.commit()
 
     ticket1 = Ticket(name='Coachella', price=2000, category_id=category2.category_id, quantity=5000, date='2023-04-19',
-                     place='California', status='available', info="Coachella fest in California")
+                     place='California', status='available', image="/home/rosska/Desktop/event_images", info="Coachella fest in California")
     ticket2 = Ticket(name='Zahid Fest', price=1000, category_id=category2.category_id, quantity=4000, date='2023-08-23',
-                     place='Lvivska oblast', status='available', info="Zahid Fest is an annual international music and art festival held in the middle of August near Lviv, Ukraine. "
+                     place='Lvivska oblast', status='available', image="/home/rosska/Desktop/event_images",
+                     info="Zahid Fest is an annual international music and art festival held in the middle of August near Lviv, Ukraine. "
                                                                       "ZAKHID was founded in 2009 as a festival of "
                                                                       "Ukrainian rock and ethno music. Later it has "
                                                                       "lost an attachment to some concrete music "
@@ -53,7 +54,8 @@ with app.app_context():
                                                                       "Also some artists are invited based on organizers' initiative and their names are hidden until the tickets sales start."
                                                                       "The festivals name 'Zakhid' means in Ukrainian equivocally West (or Western, meaning western part of Ukraine) and Event. ")
     ticket3 = Ticket(name='Don Kihot', price=600, category_id=category1.category_id, quantity=500, date='2023-11-29',
-                     place='Opera theater', status='available', info="The plot revolves around the adventures of a member of the lowest nobility, "
+                     place='Opera theater', status='available', image="/home/rosska/Desktop/event_images",
+                     info="The plot revolves around the adventures of a member of the lowest nobility, "
                                                                      "an hidalgo from La Mancha named Alonso Quijano, who reads so many chivalric romances "
                                                                      "that he either loses or pretends to have lost his mind in order to become a knight-errant "
                                                                      "(caballero andante) to revive chivalry and serve his nation, under the name Don Quixote de la Mancha.[b] "
