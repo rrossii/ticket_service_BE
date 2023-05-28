@@ -272,21 +272,25 @@ def update_ticket_info(ticket_id):
     if ticket is None:
         return jsonify({"message": "Ticket not found"}), 404
 
-    name = request.json['name']
-    price = request.json['price']
-    category_id = request.json['category_id']
-    quantity = request.json['quantity']
-    date = request.json['date']
-    place = request.json['place']
-    status = request.json['status']
+    name = request.json['updatedName']
+    price = request.json['updatedPrice']
+    category = request.json['updatedCategory']
+    quantity = request.json['updatedQuantity']
+    # date = request.json['updatedDate']
+    place = request.json['updatedPlace']
+    status = request.json['updatedStatus']
+    info = request.json['updatedInfo']
+
+    category_id = category_name_to_id(category)
 
     ticket.name = name
     ticket.price = price
     ticket.category_id = category_id
     ticket.quantity = quantity
-    ticket.date = date
+    # ticket.date = date
     ticket.place = place
     ticket.status = status
+    ticket.info = info
 
     ticket_validation(price, category_id, quantity, status)
 
@@ -340,9 +344,10 @@ def get_tickets_by_status():
     return jsonify(result), 200
 
 
-@app.route('/tickets/findByCategory', methods=['GET'])
-def get_tickets_by_category():
-    category_name = request.json['category']
+@app.route('/tickets/findByCategory/<category_name>', methods=['GET'])
+def get_tickets_by_category(category_name):
+    # category_name = request.json['category']
+    category_name = category_name.lower()
 
     if not isinstance(category_name, str):
         return jsonify({"message": "Invalid category value"}), 400
