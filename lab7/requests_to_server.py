@@ -236,7 +236,7 @@ def get_all_tickets():
     for ticket in tickets:
         result.append({'ticket_id': ticket.ticket_id, 'name': ticket.name, 'price': ticket.price,
                        'category_id': ticket.category_id, 'quantity': ticket.quantity,
-                       'date': ticket.date, 'place': ticket.place, "status": ticket.status, "info": ticket.info})
+                       'date': ticket.date, 'place': ticket.place, "status": ticket.status, "image": ticket.image, "info": ticket.info})
 
     return jsonify(result)
 
@@ -251,10 +251,11 @@ def create_ticket():
     date = request.json['date']
     place = request.json['place']
     info = request.json['info']
+    image = "/images/" + request.json['imageName']
 
     category_id = category_name_to_id(category)
 
-    new_ticket = Ticket(name, price, category_id, quantity, date, place, "available", info)
+    new_ticket = Ticket(name, price, category_id, quantity, date, place, "available", info, image)
 
     ticket_validation(price, category_id, quantity, "available")
 
@@ -280,6 +281,7 @@ def update_ticket_info(ticket_id):
     place = request.json['updatedPlace']
     status = request.json['updatedStatus']
     info = request.json['updatedInfo']
+    image = "/images/" + request.json['updatedImageName']
 
     category_id = category_name_to_id(category)
 
@@ -291,6 +293,7 @@ def update_ticket_info(ticket_id):
     ticket.place = place
     ticket.status = status
     ticket.info = info
+    ticket.image = image
 
     ticket_validation(price, category_id, quantity, status)
 
@@ -336,7 +339,7 @@ def get_tickets_by_status():
     for ticket in tickets:
         result.append({'ticket_id': ticket.ticket_id, 'name': ticket.name, 'price': ticket.price,
                        'category_id': ticket.category_id, 'quantity': ticket.quantity,
-                       'date': ticket.date, 'place': ticket.place, "status": ticket.status, "info": ticket.info})
+                       'date': ticket.date, 'place': ticket.place, "status": ticket.status, "image": ticket.image, "info": ticket.info})
 
     if len(result) == 0:
         return jsonify({"message": "Tickets not found"}), 404
@@ -365,7 +368,7 @@ def get_tickets_by_category(category_name):
     for ticket in tickets:
         result.append({'ticket_id': ticket.ticket_id, 'name': ticket.name, 'price': ticket.price,
                        'category_id': ticket.category_id, 'quantity': ticket.quantity,
-                       'date': ticket.date, 'place': ticket.place, "status": ticket.status, "info": ticket.info})
+                       'date': ticket.date, 'place': ticket.place, "status": ticket.status, "image": ticket.image, "info": ticket.info})
 
     if len(result) == 0:
         return jsonify({"message": "Tickets not found"}), 404
@@ -383,7 +386,7 @@ def get_tickets_by_date():
     for ticket in tickets:
         result.append({'ticket_id': ticket.ticket_id, 'name': ticket.name, 'price': ticket.price,
                        'category_id': ticket.category_id, 'quantity': ticket.quantity,
-                       'date': ticket.date, 'place': ticket.place, "status": ticket.status, "info": ticket.info})
+                       'date': ticket.date, 'place': ticket.place, "status": ticket.status, "image": ticket.image, "info": ticket.info})
 
     if len(result) == 0:
         return jsonify({"message": "Tickets not found"}), 404
@@ -453,6 +456,8 @@ def book_ticket(ticket_id):
         return jsonify({"message": "Invalid ticket_id value"}), 400
     if isinstance(quantity, type(int)):
         return jsonify({"message": "Quantity value must be integer"}), 400
+    if quantity < 0:
+        return jsonify({"message": "Quantity value must be positive"}), 400
     if ticket.quantity == 0:
         ticket.status = 'sold out'
         return jsonify({"message": "These tickets are sold out"}), 404
@@ -513,6 +518,24 @@ def get_all_purchases():
 
     for purchase in purchases:
         result.append({'id': purchase.purchase_id, 'ticket_id': purchase.ticket_id, 'user_id': purchase.user_id,
+                       'quantity': purchase.quantity,
+                       'total_price': purchase.total_price, 'status': purchase.status})
+
+    return jsonify(result)
+
+
+@app.route('/tickets/user-purchase/<user_id>', methods=['GET'])
+@token_required_for_user_operations     # or not
+def get_purchases_by_user_id(user_id):
+    purchases = Purchase.query.filter_by(user_id=user_id)
+
+    result = []
+
+    if purchases is None:
+        return jsonify({"message": "Empty"}), 200
+
+    for purchase in purchases:
+        result.append({'id': purchase.purchase_id, 'ticket_id': purchase.ticket_id,
                        'quantity': purchase.quantity,
                        'total_price': purchase.total_price, 'status': purchase.status})
 
