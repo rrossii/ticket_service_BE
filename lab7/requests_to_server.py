@@ -57,7 +57,7 @@ def token_required(func):
     return decorated
 
 
-def token_required_for_user_operations(func):
+def token_required_for_user_and_purchase_operations(func):
     def decorated(*args, **kwargs):
         token = request.headers["Authorization"]
 
@@ -174,7 +174,7 @@ def get_all_users():
 
 
 @app.route('/user/<user_id>', methods=['PUT'])
-@token_required_for_user_operations
+@token_required_for_user_and_purchase_operations
 def update_user_info(user_id):
     user = User.query.get(user_id)
 
@@ -215,7 +215,7 @@ def get_user_by_id(user_id):
 
 
 @app.route('/user/<user_id>', methods=['DELETE'])
-@token_required_for_user_operations
+@token_required_for_user_and_purchase_operations
 def delete_user(user_id):
     user = User.query.get(user_id)
     if user is None:
@@ -284,6 +284,9 @@ def update_ticket_info(ticket_id):
     image = "/images/" + request.json['updatedImageName']
 
     category_id = category_name_to_id(category)
+
+    if status == "sold out" and quantity > 0:
+        return jsonify({"message": "There are more than 0 tickets, so status can't be sold out!"}), 404
 
     ticket.name = name
     ticket.price = price
@@ -484,12 +487,15 @@ def book_ticket(ticket_id):
     return purchase_schema.jsonify(purchase), 200
 
 
-@app.route('/tickets/book/<purchase_id>', methods=['DELETE'])
-def cancel_booking(purchase_id):
+@app.route('/tickets/book/<purchase_id>/<user_id>', methods=['DELETE'])
+def cancel_booking(purchase_id, user_id):
     booking = Purchase.query.get(purchase_id)
 
     if booking is None:
         return jsonify({"message": "Booking not found"}), 404
+
+    if booking.user_id != int(user_id):
+        return jsonify({"message": "You haven't booked this event"}), 404
 
     booking_status = db.session.query(Purchase).filter_by(purchase_id=purchase_id).one().status
     if booking_status == 'bought':
@@ -503,11 +509,11 @@ def cancel_booking(purchase_id):
     db.session.delete(booking)
     db.session.commit()
 
-    return "Canceled successfully", 204
+    return jsonify({"message": "Canceled successfully"}), 204
 
 
 @app.route('/tickets/buy', methods=['GET'])
-@token_required
+@token_required # only admins can see all purchases
 def get_all_purchases():
     purchases = Purchase.query.all()
 
@@ -517,15 +523,15 @@ def get_all_purchases():
         return jsonify({"message": "Empty"}), 200
 
     for purchase in purchases:
-        result.append({'id': purchase.purchase_id, 'ticket_id': purchase.ticket_id, 'user_id': purchase.user_id,
-                       'quantity': purchase.quantity,
+        result.append({'purchase_id': purchase.purchase_id, 'ticket_id': purchase.ticket_id,
+                       'quantity': purchase.quantity, "user_id": purchase.user_id,
                        'total_price': purchase.total_price, 'status': purchase.status})
 
     return jsonify(result)
 
 
 @app.route('/tickets/user-purchase/<user_id>', methods=['GET'])
-@token_required_for_user_operations     # or not
+@token_required_for_user_and_purchase_operations
 def get_purchases_by_user_id(user_id):
     purchases = Purchase.query.filter_by(user_id=user_id)
 
@@ -535,8 +541,8 @@ def get_purchases_by_user_id(user_id):
         return jsonify({"message": "Empty"}), 200
 
     for purchase in purchases:
-        result.append({'id': purchase.purchase_id, 'ticket_id': purchase.ticket_id,
-                       'quantity': purchase.quantity,
+        result.append({'purchase_id': purchase.purchase_id, 'ticket_id': purchase.ticket_id,
+                       'quantity': purchase.quantity, "user_id": purchase.user_id,
                        'total_price': purchase.total_price, 'status': purchase.status})
 
     return jsonify(result)
