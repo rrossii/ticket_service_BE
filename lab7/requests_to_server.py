@@ -5,9 +5,11 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session
 from flask_jwt import JWT, jwt_required, current_identity
 from flask_cors import cross_origin
+from datetime import datetime
 
 from lab6.utils import *
 
+today = datetime.today()
 
 def user_validation(phone, email, user_status, first_name, last_name):
     UserSchema.Meta.validate_phone(phone)
@@ -227,20 +229,6 @@ def delete_user(user_id):
     return "Deleted successfully", 204
 
 
-@app.route('/tickets', methods=['GET'])
-def get_all_tickets():
-    tickets = Ticket.query.all()
-
-    result = []
-
-    for ticket in tickets:
-        result.append({'ticket_id': ticket.ticket_id, 'name': ticket.name, 'price': ticket.price,
-                       'category_id': ticket.category_id, 'quantity': ticket.quantity,
-                       'date': ticket.date, 'place': ticket.place, "status": ticket.status, "image": ticket.image, "info": ticket.info})
-
-    return jsonify(result)
-
-
 @app.route('/tickets', methods=['POST'])
 @token_required
 def create_ticket():
@@ -318,7 +306,6 @@ def delete_ticket(ticket_id):
 
     return "Deleted successfully", 204
 
-
 @app.route('/tickets/<ticket_id>', methods=['GET'])
 def get_ticket_by_id(ticket_id):
     ticket = Ticket.query.get(ticket_id)
@@ -326,7 +313,29 @@ def get_ticket_by_id(ticket_id):
     if ticket is None:
         return jsonify({"message": "Ticket not found"}), 404
 
-    return ticket_schema.jsonify(ticket)
+    if ticket.date < today:
+        db.session.delete(ticket)
+        db.session.commit()
+    else:
+        return ticket_schema.jsonify(ticket)
+
+
+@app.route('/tickets', methods=['GET'])
+def get_all_tickets():
+    tickets = Ticket.query.all()
+
+    result = []
+
+    for ticket in tickets:
+        if ticket.date < today:
+            db.session.delete(ticket)
+            db.session.commit()
+        else:
+            result.append({'ticket_id': ticket.ticket_id, 'name': ticket.name, 'price': ticket.price,
+                       'category_id': ticket.category_id, 'quantity': ticket.quantity,
+                       'date': ticket.date, 'place': ticket.place, "status": ticket.status, "image": ticket.image, "info": ticket.info})
+
+    return jsonify(result)
 
 
 @app.route('/tickets/findByStatus', methods=['GET'])
@@ -340,7 +349,11 @@ def get_tickets_by_status():
     result = []
 
     for ticket in tickets:
-        result.append({'ticket_id': ticket.ticket_id, 'name': ticket.name, 'price': ticket.price,
+        if ticket.date < today:
+            db.session.delete(ticket)
+            db.session.commit()
+        else:
+            result.append({'ticket_id': ticket.ticket_id, 'name': ticket.name, 'price': ticket.price,
                        'category_id': ticket.category_id, 'quantity': ticket.quantity,
                        'date': ticket.date, 'place': ticket.place, "status": ticket.status, "image": ticket.image, "info": ticket.info})
 
@@ -369,7 +382,11 @@ def get_tickets_by_category(category_name):
     result = []
 
     for ticket in tickets:
-        result.append({'ticket_id': ticket.ticket_id, 'name': ticket.name, 'price': ticket.price,
+        if ticket.date < today:
+            db.session.delete(ticket)
+            db.session.commit()
+        else:
+            result.append({'ticket_id': ticket.ticket_id, 'name': ticket.name, 'price': ticket.price,
                        'category_id': ticket.category_id, 'quantity': ticket.quantity,
                        'date': ticket.date, 'place': ticket.place, "status": ticket.status, "image": ticket.image, "info": ticket.info})
 
@@ -387,7 +404,11 @@ def get_tickets_by_date():
     result = []
 
     for ticket in tickets:
-        result.append({'ticket_id': ticket.ticket_id, 'name': ticket.name, 'price': ticket.price,
+        if ticket.date < today:
+            db.session.delete(ticket)
+            db.session.commit()
+        else:
+            result.append({'ticket_id': ticket.ticket_id, 'name': ticket.name, 'price': ticket.price,
                        'category_id': ticket.category_id, 'quantity': ticket.quantity,
                        'date': ticket.date, 'place': ticket.place, "status": ticket.status, "image": ticket.image, "info": ticket.info})
 
