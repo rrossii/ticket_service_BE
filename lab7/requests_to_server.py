@@ -107,7 +107,7 @@ def login():
                             "password": user.password, "phone": user.phone,
                             "username": user.username, "email": user.email, "user_status": user.user_status,
                             "user_id": user.user_id})
-    return jsonify({"error": "Wrong credentials!"}), 401
+    return jsonify({"message": "Wrong credentials!"}), 401
 
 
 @app.route('/user/logout', methods=['DELETE'])
@@ -141,9 +141,9 @@ def create_user():
     user_by_email = User.query.filter_by(email=email).first()
     user_by_username = User.query.filter_by(username=username).first()
     if user_by_email is not None:
-        return jsonify({"error": "User with this email already exists, try again"}), 404
+        return jsonify({"message": "User with this email already exists, try again"}), 404
     if user_by_username is not None:
-        return jsonify({"error": "User with this username already exists, try again"}), 404
+        return jsonify({"message": "User with this username already exists, try again"}), 404
     if len(password) < 8:
         raise ValidationError("Password must be greater than or equal to 8")
 
